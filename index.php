@@ -1,8 +1,12 @@
 <?php 
-include 'db.php';
-// On récupère le prix en base de données
+include 'db.php'; // On ouvre le tuyau
+
+// On récupère le prix de l'hiver
 $stmt = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'winter_price'");
 $priceFromDB = $stmt->fetchColumn();
+
+// Si la base est vide, on met 95 par défaut
+if (!$priceFromDB) { $priceFromDB = 95; }
 ?>
 
 <!DOCTYPE html>
