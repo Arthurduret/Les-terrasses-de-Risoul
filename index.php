@@ -1,3 +1,10 @@
+<?php 
+include 'db.php';
+// On récupère le prix en base de données
+$stmt = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'winter_price'");
+$priceFromDB = $stmt->fetchColumn();
+?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -83,23 +90,49 @@
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
+
+        const pricePerNight = <?php echo $priceFromDB ? $priceFromDB : 95; ?>;
         // Fonctions pour la Galerie
         function openGallery() { document.getElementById('gallery-modal').classList.remove('hidden'); }
         function closeGallery() { document.getElementById('gallery-modal').classList.add('hidden'); }
 
-        // Configuration du Calendrier
         flatpickr("#calendar-input", {
             mode: "range",
             minDate: "today",
             dateFormat: "d/m/Y",
-            onChange: function(selectedDates) {
+            "locale": "fr",
+            // On permet de cliquer sur tous les jours, MAIS...
+            onChange: function(selectedDates, dateStr, instance) {
+                // Si l'utilisateur a choisi une date de début
+                if (selectedDates.length === 1) {
+                    // Si ce n'est pas un samedi (6), on annule et on prévient
+                    if (selectedDates[0].getDay() !== 6) {
+                        alert("Les arrivées se font uniquement le samedi.");
+                        instance.clear();
+                        return;
+                    }
+                }
+
+                // Si l'utilisateur a choisi la date de fin
                 if (selectedDates.length === 2) {
-                    const nights = Math.ceil(Math.abs(selectedDates[1] - selectedDates[0]) / (1000 * 60 * 60 * 24));
-                    document.getElementById('total-val').innerText = (nights * 95) + "€";
+                    const d1 = selectedDates[0];
+                    const d2 = selectedDates[1];
+                    const nights = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24));
+
+                    // Vérification : est-ce que le départ est un samedi ET est-ce que c'est bien 7, 14, 21 nuits ?
+                    if (d2.getDay() !== 6 || nights % 7 !== 0) {
+                        alert("Les séjours doivent se faire par semaines complètes (du samedi au samedi).");
+                        instance.clear();
+                        return;
+                    }
+
+                    // Si tout est OK, on affiche le prix
+                    document.getElementById('total-val').innerText = (nights * pricePerNight) + "€";
                     document.getElementById('price-summary').classList.remove('hidden');
                 }
             }
         });
+
     </script>
 </body>
 </html>
