@@ -12,9 +12,9 @@ export function Button({
   const base =
     "inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-medium transition-colors";
   const variants = {
-    primary: "bg-pine-700 text-white hover:bg-pine-800",
+    primary: "bg-ember-600 text-white hover:bg-ember-700",
     secondary:
-      "bg-white text-stone-800 border border-stone-300 hover:bg-stone-50",
+      "bg-transparent text-wood-300 border border-wood-700 hover:bg-wood-900/40",
   };
 
   return (

@@ -27,16 +27,16 @@ export default function AdminLoginPage() {
     <main className="flex flex-1 items-center justify-center py-16">
       <Container>
         <div className="mx-auto max-w-sm">
-          <h1 className="text-2xl font-bold text-stone-900">
+          <h1 className="text-2xl font-bold text-foreground">
             Connexion admin
           </h1>
-          <p className="mt-2 text-stone-600">
+          <p className="mt-2 text-foreground/70">
             Recevez un lien de connexion par email — pas de mot de passe à
             retenir.
           </p>
 
           {status === "sent" ? (
-            <p className="mt-6 rounded-lg bg-pine-50 p-4 text-pine-800">
+            <p className="mt-6 rounded-lg bg-anthracite-700 p-4 text-wood-300">
               Un lien de connexion a été envoyé à {email}. Vérifiez votre
               boîte mail.
             </p>
@@ -48,13 +48,13 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="votre@email.fr"
-                className="w-full rounded-lg border border-stone-300 px-4 py-2.5 text-stone-900 focus:border-pine-600 focus:outline-none"
+                className="w-full rounded-lg border border-wood-700 bg-anthracite-800 px-4 py-2.5 text-foreground placeholder:text-foreground/40 focus:border-wood-300 focus:outline-none"
               />
               <Button type="submit" className="w-full">
                 Recevoir le lien de connexion
               </Button>
               {status === "error" && (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-red-400">
                   Une erreur est survenue, réessayez.
                 </p>
               )}

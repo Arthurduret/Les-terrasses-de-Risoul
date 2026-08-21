@@ -1,33 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fdfbf7;
-  --foreground: #2b2622;
+  /* Anthracite chaud — base du site */
+  --background: #1a1815;
+  --foreground: #f2ede4;
 
-  /* Vert sapin — accent principal (CTA, statut "disponible") */
-  --color-pine-50: #eef5ee;
-  --color-pine-100: #d3e6d4;
-  --color-pine-600: #2f6b4f;
-  --color-pine-700: #275a42;
-  --color-pine-800: #1f4834;
+  /* Bois — accent (sections, bordures, éléments secondaires) */
+  --color-wood-300: #c99b6c;
+  --color-wood-500: #9c6b3f;
+  --color-wood-700: #6b4526;
+  --color-wood-900: #3d2716;
 
-  /* Bleu ciel — accent secondaire */
-  --color-sky-100: #e1f0f7;
-  --color-sky-500: #4fa3c4;
-  --color-sky-600: #3d87a6;
+  /* Anthracite — nuances pour panneaux/cartes au-dessus du fond */
+  --color-anthracite-700: #292521;
+  --color-anthracite-800: #211e1a;
+
+  /* Rouge profond — accent CTA */
+  --color-ember-500: #a3372f;
+  --color-ember-600: #8a2c25;
+  --color-ember-700: #6e211b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-pine-50: var(--color-pine-50);
-  --color-pine-100: var(--color-pine-100);
-  --color-pine-600: var(--color-pine-600);
-  --color-pine-700: var(--color-pine-700);
-  --color-pine-800: var(--color-pine-800);
-  --color-sky-100: var(--color-sky-100);
-  --color-sky-500: var(--color-sky-500);
-  --color-sky-600: var(--color-sky-600);
+  --color-wood-300: var(--color-wood-300);
+  --color-wood-500: var(--color-wood-500);
+  --color-wood-700: var(--color-wood-700);
+  --color-wood-900: var(--color-wood-900);
+  --color-anthracite-700: var(--color-anthracite-700);
+  --color-anthracite-800: var(--color-anthracite-800);
+  --color-ember-500: var(--color-ember-500);
+  --color-ember-600: var(--color-ember-600);
+  --color-ember-700: var(--color-ember-700);
   --font-sans: var(--font-geist-sans);
 }
 
