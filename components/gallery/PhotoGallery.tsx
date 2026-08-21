@@ -11,7 +11,7 @@ export function PhotoGallery() {
 
   return (
     <div className="relative">
-      <div className="grid grid-cols-2 gap-2 overflow-hidden rounded-2xl sm:grid-cols-4 sm:grid-rows-2">
+      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:grid-rows-2">
         {tiles.map((photo, i) => (
           <button
             type="button"
@@ -35,7 +35,7 @@ export function PhotoGallery() {
       <button
         type="button"
         onClick={() => setLightboxIndex(0)}
-        className="absolute bottom-4 right-4 rounded-lg border border-foreground/30 bg-background/90 px-4 py-2 text-sm font-medium text-foreground hover:bg-background"
+        className="absolute bottom-4 right-4 border border-foreground/25 bg-background/85 px-4 py-2.5 text-xs tracking-[0.1em] text-foreground uppercase backdrop-blur-sm hover:border-wood-500"
       >
         Toutes les photos ({APARTMENT_PHOTOS.length})
       </button>

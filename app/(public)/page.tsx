@@ -6,46 +6,67 @@ import { HeroSlideshow } from "@/components/gallery/HeroSlideshow";
 import { HeroBadges } from "@/components/hero/HeroBadges";
 import { PhotoGallery } from "@/components/gallery/PhotoGallery";
 import { LocalBusinessCard } from "@/components/activities/LocalBusinessCard";
-import {
-  LOCAL_BUSINESSES,
-  groupBusinessesByCategory,
-} from "@/components/activities/local-businesses";
+import { LOCAL_BUSINESSES } from "@/components/activities/local-businesses";
 import { BookingWidget } from "@/components/booking/BookingWidget";
 import { Snowfall } from "@/components/decor/Snowfall";
 import { ChairliftDivider } from "@/components/decor/ChairliftDivider";
 import { SkiTraceDivider } from "@/components/decor/SkiTraceDivider";
 import { getBlockedDates } from "@/lib/availability";
+import { getSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const blockedDates = await getBlockedDates(supabase);
-  const businessGroups = groupBusinessesByCategory(LOCAL_BUSINESSES);
+  const [blockedDates, settings, { data: pricingRules }] = await Promise.all([
+    getBlockedDates(supabase),
+    getSettings(supabase),
+    supabase.from("pricing_rules").select("*"),
+  ]);
 
   return (
     <main className="flex-1">
-      <section className="relative overflow-hidden border-b border-wood-900 py-16 sm:py-24">
+      <section className="relative h-screen min-h-[680px] overflow-hidden border-b border-wood-700">
         <HeroSlideshow />
         <Snowfall />
         <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/40"
+          className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-t from-background from-5% via-background/35 via-40% to-background/85"
           aria-hidden="true"
         />
-        <Container>
-          <div className="relative">
-            <p className="text-sm font-semibold uppercase tracking-wide text-wood-300">
-              Risoul, Hautes-Alpes
+
+        <div className="relative z-[8] flex h-full flex-col justify-between px-5 py-8 sm:px-10 sm:py-10">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <span className="font-display text-lg tracking-[0.22em] text-foreground uppercase">
+              Risoul 1850
+            </span>
+            <div className="flex gap-7 text-xs tracking-[0.16em] text-mist-400 uppercase">
+              <Link href="#disponibilites" className="hover:text-foreground">
+                Réserver
+              </Link>
+              <Link href="#activites" className="hover:text-foreground">
+                La station
+              </Link>
+              <Link href="#contact" className="hover:text-foreground">
+                Contact
+              </Link>
+            </div>
+          </div>
+
+          <div className="max-w-3xl">
+            <p className="mb-5 text-xs tracking-[0.34em] text-wood-500 uppercase">
+              Appartement · Hautes-Alpes
             </p>
-            <h1 className="mt-3 text-4xl font-bold text-foreground sm:text-5xl">
-              Les Terrasses de Risoul
+            <h1 className="text-5xl leading-[1.02] font-medium text-balance text-foreground sm:text-7xl font-display">
+              Les Terrasses
+              <br />
+              de Risoul
             </h1>
-            <p className="mt-4 max-w-xl text-lg text-foreground/70">
-              Un appartement au pied des pistes, à louer à la semaine ou au
-              week-end. Vérifiez les disponibilités et envoyez votre demande de
-              réservation en quelques minutes.
+            <p className="mt-6 max-w-lg text-lg leading-relaxed text-mist-300 text-pretty">
+              Un appartement chaleureux au pied des pistes, à louer à la
+              semaine ou au week-end. Bois clair, grande terrasse, vue sur les
+              montagnes.
             </p>
             <HeroBadges />
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3.5">
               <Link href="#disponibilites">
                 <Button variant="primary">Voir les disponibilités</Button>
               </Link>
@@ -54,25 +75,31 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-        </Container>
+
+          <div className="h-8" />
+        </div>
       </section>
 
-      <section id="disponibilites" className="py-16">
+      <section id="disponibilites" className="py-24 sm:py-32">
         <Container wide>
           <Reveal>
-            <h2 className="text-2xl font-bold text-foreground">
+            <p className="mb-4 text-xs tracking-[0.32em] text-wood-500 uppercase">
               L&apos;appartement
-            </h2>
-            <p className="mt-2 text-foreground/70">
-              Un aperçu du séjour, et vos disponibilités en un coup d&apos;œil.
             </p>
+            <h2 className="font-display text-4xl text-foreground sm:text-5xl">
+              Un aperçu du séjour
+            </h2>
           </Reveal>
-          <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_360px] lg:items-start">
+          <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_380px] lg:items-start">
             <Reveal>
               <PhotoGallery />
             </Reveal>
             <div className="lg:sticky lg:top-8">
-              <BookingWidget blockedDates={blockedDates} />
+              <BookingWidget
+                blockedDates={blockedDates}
+                pricingRules={pricingRules ?? []}
+                settings={settings}
+              />
             </div>
           </div>
         </Container>
@@ -80,20 +107,24 @@ export default async function HomePage() {
 
       <ChairliftDivider />
 
-      <section className="bg-anthracite-800 py-16">
+      <section id="activites" className="bg-anthracite-700 py-24 sm:py-32">
         <Container wide>
           <Reveal>
-            <h2 className="text-2xl font-bold text-foreground">
+            <p className="mb-4 text-xs tracking-[0.32em] text-wood-500 uppercase">
               À faire à Risoul
+            </p>
+            <h2 className="max-w-xl font-display text-4xl text-foreground sm:text-5xl">
+              La station, à deux pas de la porte
             </h2>
-            <p className="mt-2 text-foreground/70">
-              Commerces, restaurants et loisirs à deux pas de l&apos;appartement.
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-mist-500">
+              Commerces, tables et activités accessibles à pied depuis
+              l&apos;appartement.
             </p>
           </Reveal>
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {businessGroups.map((group, i) => (
-              <Reveal key={group.category} delayMs={i * 80}>
-                <LocalBusinessCard group={group} />
+          <div className="mt-12 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            {LOCAL_BUSINESSES.map((business, i) => (
+              <Reveal key={business.id} delayMs={(i % 3) * 80}>
+                <LocalBusinessCard business={business} />
               </Reveal>
             ))}
           </div>
@@ -104,14 +135,17 @@ export default async function HomePage() {
 
       <section
         id="contact"
-        className="border-t border-wood-900 bg-anthracite-700 py-16"
+        className="border-t border-wood-700 py-24 sm:py-32"
       >
         <Container>
           <Reveal>
-            <h2 className="text-2xl font-bold text-foreground">
-              Une question, une demande ?
+            <p className="mb-4 text-xs tracking-[0.32em] text-wood-500 uppercase">
+              Contact
+            </p>
+            <h2 className="font-display text-4xl text-foreground sm:text-5xl">
+              Parlons de votre séjour
             </h2>
-            <p className="mt-2 max-w-xl text-foreground/70">
+            <p className="mt-4 max-w-md text-base leading-relaxed text-mist-500">
               Le formulaire de demande de réservation arrive bientôt. En
               attendant, vous pouvez nous écrire directement.
             </p>

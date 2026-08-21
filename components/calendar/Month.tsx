@@ -38,22 +38,18 @@ export function Month({
   return (
     <div>
       <p
-        className={`mb-4 text-center font-semibold capitalize text-foreground ${
-          large ? "text-lg" : ""
+        className={`mb-4 text-center font-display capitalize tracking-wide text-foreground ${
+          large ? "text-lg" : "text-base"
         }`}
       >
         {formatMonthLabel(monthDate)}
       </p>
-      <div
-        className={`mb-2 grid grid-cols-7 text-center text-foreground/40 ${
-          large ? "text-sm" : "text-xs"
-        }`}
-      >
+      <div className="mb-1 grid grid-cols-7 text-center text-[11px] tracking-wide text-mist-800">
         {WEEKDAY_LABELS.map((label, i) => (
           <span key={i}>{label}</span>
         ))}
       </div>
-      <div className={`grid grid-cols-7 ${large ? "gap-y-2" : "gap-y-1"}`}>
+      <div className="grid grid-cols-7 gap-0.5">
         {weeks.map((week, weekIndex) =>
           week.map((date, dayIndex) => {
             if (!date) {
@@ -74,35 +70,24 @@ export function Month({
                 ? date.getTime() > selectionStart.getTime() &&
                   date.getTime() < rangeEnd.getTime()
                 : false;
-            const showBand =
-              Boolean(selectionStart && rangeEnd) &&
-              (inRange || isStart || isEnd) &&
-              !(isStart && isEnd);
-
-            let bandClass = "";
-            if (showBand) {
-              bandClass = "bg-wood-900/50";
-              if (isStart) bandClass += " rounded-l-full";
-              if (isEnd) bandClass += " rounded-r-full";
-            }
 
             return (
-              <div key={iso} className={`flex justify-center py-0.5 ${bandClass}`}>
-                <button
-                  type="button"
-                  disabled={unavailable}
-                  onClick={() => onDayClick(date)}
-                  onMouseEnter={() => onDayHover(date)}
-                  className={dayButtonClasses({
-                    unavailable,
-                    isCap: isStart || isEnd,
-                    isToday: isSameDay(date, today),
-                    large,
-                  })}
-                >
-                  {date.getDate()}
-                </button>
-              </div>
+              <button
+                key={iso}
+                type="button"
+                disabled={unavailable}
+                onClick={() => onDayClick(date)}
+                onMouseEnter={() => onDayHover(date)}
+                className={dayButtonClasses({
+                  unavailable,
+                  isCap: isStart || isEnd,
+                  inRange,
+                  isToday: isSameDay(date, today),
+                  large,
+                })}
+              >
+                {date.getDate()}
+              </button>
             );
           })
         )}
@@ -114,25 +99,30 @@ export function Month({
 function dayButtonClasses({
   unavailable,
   isCap,
+  inRange,
   isToday,
   large,
 }: {
   unavailable: boolean;
   isCap: boolean;
+  inRange: boolean;
   isToday: boolean;
   large: boolean;
 }) {
   const base = large
-    ? "h-12 w-12 rounded-full text-base transition-colors"
-    : "h-9 w-9 rounded-full text-sm transition-colors";
+    ? "h-11 rounded-[9px] text-base transition-colors"
+    : "h-10 rounded-[9px] text-sm transition-colors";
 
   if (unavailable) {
-    return `${base} text-foreground/20 line-through cursor-not-allowed`;
+    return `${base} text-mist-800 line-through decoration-ember-600/70 cursor-not-allowed`;
   }
   if (isCap) {
-    return `${base} bg-ember-600 text-white font-semibold`;
+    return `${base} bg-ember-600 text-white font-semibold cursor-pointer`;
   }
-  return `${base} cursor-pointer text-foreground hover:bg-wood-900/60 ${
+  if (inRange) {
+    return `${base} bg-wood-900/30 text-foreground cursor-pointer`;
+  }
+  return `${base} cursor-pointer text-mist-300 hover:ring-1 hover:ring-foreground/30 ${
     isToday ? "ring-1 ring-wood-500" : ""
   }`;
 }

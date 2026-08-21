@@ -10,11 +10,11 @@ export function Button({
   ...props
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-ember-600";
+    "inline-flex items-center justify-center rounded-sm px-8 py-4 text-sm tracking-[0.14em] uppercase transition-[background-color,border-color,transform] duration-200 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-ember-600 disabled:hover:translate-y-0";
   const variants = {
-    primary: "bg-ember-600 text-white hover:bg-ember-700",
+    primary: "bg-ember-600 text-white hover:bg-ember-500 hover:-translate-y-0.5",
     secondary:
-      "bg-transparent text-wood-300 border border-wood-700 hover:bg-wood-900/40",
+      "bg-transparent text-foreground border border-foreground/30 hover:border-wood-500 hover:bg-wood-900/10",
   };
 
   return (

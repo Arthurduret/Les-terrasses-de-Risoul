@@ -20,12 +20,14 @@ interface DateRange {
 interface AvailabilityCalendarProps {
   blockedDates: string[];
   size?: "default" | "large";
+  months?: 1 | 2;
   onSelectionChange?: (range: DateRange) => void;
 }
 
 export function AvailabilityCalendar({
   blockedDates,
   size = "default",
+  months = 2,
   onSelectionChange,
 }: AvailabilityCalendarProps) {
   const blockedSet = useMemo(() => new Set(blockedDates), [blockedDates]);
@@ -123,6 +125,13 @@ export function AvailabilityCalendar({
     size,
   };
 
+  const navButtonClasses = (enabled: boolean) =>
+    `flex h-8 w-8 items-center justify-center rounded-[3px] border text-mist-300 text-base leading-none transition-colors ${
+      enabled
+        ? "border-foreground/18 hover:border-wood-500 hover:text-foreground"
+        : "cursor-not-allowed border-foreground/10 opacity-30"
+    }`;
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
@@ -131,9 +140,7 @@ export function AvailabilityCalendar({
           onClick={handlePrev}
           disabled={!canGoPrev}
           aria-label="Mois précédent"
-          className={`flex h-9 w-9 items-center justify-center rounded-full border border-wood-700 text-foreground ${
-            canGoPrev ? "hover:bg-wood-900/40" : "cursor-not-allowed opacity-30"
-          }`}
+          className={navButtonClasses(canGoPrev)}
         >
           ‹
         </button>
@@ -141,29 +148,31 @@ export function AvailabilityCalendar({
           type="button"
           onClick={handleNext}
           aria-label="Mois suivant"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-wood-700 text-foreground hover:bg-wood-900/40"
+          className={navButtonClasses(true)}
         >
           ›
         </button>
       </div>
 
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 ${
+        className={`grid grid-cols-1 ${months === 2 ? "md:grid-cols-2" : ""} ${
           size === "large" ? "gap-x-12 gap-y-10" : "gap-10"
         }`}
         onMouseLeave={() => setHoverDate(null)}
       >
         <Month monthDate={visibleMonth} {...monthProps} />
-        <div className="hidden md:block">
-          <Month monthDate={secondMonth} {...monthProps} />
-        </div>
+        {months === 2 && (
+          <div className="hidden md:block">
+            <Month monthDate={secondMonth} {...monthProps} />
+          </div>
+        )}
       </div>
 
       <div className="mt-6 min-h-10">
         {error && <p className="text-sm text-red-400">{error}</p>}
         {!error && selectionStart && (
           <div className="flex flex-wrap items-center gap-4">
-            <p className="text-sm text-foreground/80">
+            <p className="text-sm text-mist-400">
               {selectionEnd ? (
                 <>
                   Du{" "}
@@ -189,7 +198,7 @@ export function AvailabilityCalendar({
             <button
               type="button"
               onClick={handleReset}
-              className="text-sm text-wood-300 underline underline-offset-2"
+              className="text-sm text-wood-500 underline underline-offset-2 hover:text-wood-300"
             >
               Réinitialiser
             </button>

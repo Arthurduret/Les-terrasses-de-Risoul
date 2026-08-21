@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { ApartmentPhoto } from "./ApartmentPhoto";
 import { APARTMENT_PHOTOS, photoSrc } from "./photos";
 
-const SLIDE_DURATION_MS = 5000;
+const SLIDE_DURATION_MS = 6500;
 const PARALLAX_FACTOR = 0.2;
 const PARALLAX_MAX_PX = 60;
-const slides = APARTMENT_PHOTOS.slice(0, 5);
+const slides = APARTMENT_PHOTOS.slice(0, 4);
 
 export function HeroSlideshow() {
   const [index, setIndex] = useState(0);
@@ -38,22 +38,36 @@ export function HeroSlideshow() {
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div
-        className="absolute -top-16 -bottom-16 left-0 right-0"
-        style={{ transform: `translate3d(0, ${parallax}px, 0)`, willChange: "transform" }}
-      >
+    <>
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div
+          className="absolute -top-16 -bottom-16 left-0 right-0"
+          style={{ transform: `translate3d(0, ${parallax}px, 0)`, willChange: "transform" }}
+        >
+          {slides.map((photo, i) => (
+            <ApartmentPhoto
+              key={photo.filename}
+              src={photoSrc(photo.filename)}
+              alt={photo.alt}
+              className={`hero-slide h-full w-full object-cover ${i === index ? "is-active" : ""}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="absolute bottom-10 right-5 z-10 flex gap-2 sm:right-8">
         {slides.map((photo, i) => (
-          <ApartmentPhoto
+          <button
             key={photo.filename}
-            src={photoSrc(photo.filename)}
-            alt={photo.alt}
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
-              i === index ? "opacity-100" : "opacity-0"
+            type="button"
+            onClick={() => setIndex(i)}
+            aria-label={`Aller à la photo ${i + 1}`}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              i === index ? "w-6 bg-wood-500" : "w-2 bg-foreground/35 hover:bg-foreground/55"
             }`}
           />
         ))}
       </div>
-    </div>
+    </>
   );
 }

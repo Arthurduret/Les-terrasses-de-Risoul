@@ -1,14 +1,7 @@
-export type BusinessCategory =
-  | "boulangerie"
-  | "courses"
-  | "restaurant"
-  | "loisir"
-  | "ski";
-
 export interface LocalBusiness {
   id: string;
   name: string;
-  category: BusinessCategory;
+  category: string;
   description: string;
   // Réservé pour mettre en avant des commerces partenaires plus tard
   // (mise en forme spéciale, tri en tête de liste, etc.) — false par défaut.
@@ -19,103 +12,88 @@ export const LOCAL_BUSINESSES: LocalBusiness[] = [
   {
     id: "le-fournil",
     name: "Le Fournil",
-    category: "boulangerie",
-    description: "Boulangerie artisanale",
+    category: "Boulangerie",
+    description:
+      "Pains au levain, viennoiseries et sandwichs à emporter avant la première remontée.",
     featured: false,
   },
   {
     id: "le-pain-des-pistes",
     name: "Le Pain des Pistes",
-    category: "boulangerie",
-    description: "Boulangerie-pâtisserie",
+    category: "Boulangerie",
+    description:
+      "La halte du retour de ski : brioches, tartes maison et chocolat chaud.",
     featured: false,
   },
   {
     id: "feuillassier",
     name: "Boucherie Feuillassier",
-    category: "courses",
-    description: "Boucherie traditionnelle",
+    category: "Boucherie",
+    description:
+      "Viandes du pays, saucisses et charcuteries de montagne pour les soirs de raclette.",
     featured: false,
   },
   {
     id: "proxi-spar",
     name: "Proxi / Spar",
-    category: "courses",
-    description: "Supérette de proximité",
+    category: "Supérette",
+    description:
+      "Les courses du séjour au pied des résidences, ouvert tôt le matin et en fin de journée.",
     featured: false,
   },
   {
     id: "le-chardon-bleu",
     name: "Le Chardon Bleu",
-    category: "restaurant",
-    description: "Restaurant",
+    category: "Restaurant",
+    description:
+      "Cuisine savoyarde généreuse et carte du jour, à réserver le week-end.",
     featured: false,
   },
   {
     id: "lecureuil",
     name: "L'Écureuil",
-    category: "restaurant",
-    description: "Restaurant",
+    category: "Restaurant d'altitude",
+    description:
+      "Déjeuner en terrasse sur les pistes, face au massif de la Forêt Blanche.",
     featured: false,
   },
   {
     id: "cine-foret-blanche",
     name: "Ciné la Forêt Blanche",
-    category: "loisir",
-    description: "Cinéma de la station",
+    category: "Cinéma",
+    description:
+      "Séances tous les soirs en saison : la bonne idée des jours de mauvais temps.",
     featured: false,
   },
   {
     id: "skiseo",
-    name: "Centre aqualudique Skiseo",
-    category: "loisir",
-    description: "Piscine et espace aquatique",
+    name: "Skiseo",
+    category: "Centre aqualudique",
+    description:
+      "Bassins, espace bien-être et détente après une grosse journée de ski.",
     featured: false,
   },
   {
     id: "tyrolienne-geante",
     name: "Tyrolienne géante",
-    category: "loisir",
-    description: "Sensations fortes au-dessus des pistes",
+    category: "Sensations",
+    description:
+      "Un vol au-dessus de la station, l'une des plus longues des Alpes du Sud.",
     featured: false,
   },
   {
     id: "esf-risoul",
     name: "ESF Risoul",
-    category: "ski",
-    description: "Cours de ski pour tous niveaux",
+    category: "École de ski",
+    description:
+      "Cours collectifs et particuliers, du Club Piou-Piou au hors-piste encadré.",
     featured: false,
   },
 ];
 
-export const CATEGORY_LABELS: Record<BusinessCategory, string> = {
-  boulangerie: "Boulangeries",
-  courses: "Courses",
-  restaurant: "Restaurants",
-  loisir: "Loisirs",
-  ski: "Ski & cours",
-};
-
-const CATEGORY_ORDER: BusinessCategory[] = [
-  "boulangerie",
-  "courses",
-  "restaurant",
-  "loisir",
-  "ski",
-];
-
-export interface BusinessGroup {
-  category: BusinessCategory;
-  businesses: LocalBusiness[];
-}
-
-export function groupBusinessesByCategory(
-  businesses: LocalBusiness[]
-): BusinessGroup[] {
-  return CATEGORY_ORDER.map((category) => ({
-    category,
-    businesses: businesses
-      .filter((b) => b.category === category)
-      .sort((a, b) => Number(b.featured) - Number(a.featured)),
-  })).filter((group) => group.businesses.length > 0);
+// Lettre d'initiale affichée dans le badge de la carte — on saute les
+// articles ("Le ", "La ", "L'") pour retomber sur le mot notable.
+export function getInitial(name: string): string {
+  const stripped = name.replace(/^(Le |La |L['’])/i, "");
+  return stripped.charAt(0).toUpperCase();
 }
