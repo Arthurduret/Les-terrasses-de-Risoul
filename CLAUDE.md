@@ -68,9 +68,7 @@ Demandes de réservation envoyées via le site public (pas de paiement en ligne 
 - Les dates sont manipulées en UTC/ISO côté DB, converties en local uniquement à l'affichage (`Europe/Paris`).
 
 ## Design
-- Ambiance montagne/chalet, sobre et chaleureux (pas de style "startup tech") : tons bois/pierre, accent bleu ciel ou vert sapin, typo lisible et un peu ronde
-- Mobile-first : la majorité des visiteurs consulteront le calendrier depuis leur téléphone
-- Le calendrier doit être compréhensible en un coup d'œil sans légende compliquée (vert = dispo, gris = indisponible)
+- Style chalet authentique : noir/anthracite comme base, bois (tons chauds marron) en accent, touche de rouge profond pour les CTA
 
 ## Conventions de code
 - Composants petits, un rôle clair chacun
