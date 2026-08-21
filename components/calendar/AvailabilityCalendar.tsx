@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { useEffect, useMemo, useState } from "react";
 import { Month } from "./Month";
 import {
   addMonths,
@@ -13,12 +12,21 @@ import {
   startOfMonth,
 } from "./utils";
 
+interface DateRange {
+  start: Date | null;
+  end: Date | null;
+}
+
 interface AvailabilityCalendarProps {
   blockedDates: string[];
+  size?: "default" | "large";
+  onSelectionChange?: (range: DateRange) => void;
 }
 
 export function AvailabilityCalendar({
   blockedDates,
+  size = "default",
+  onSelectionChange,
 }: AvailabilityCalendarProps) {
   const blockedSet = useMemo(() => new Set(blockedDates), [blockedDates]);
   const today = useMemo(() => startOfDay(new Date()), []);
@@ -29,6 +37,13 @@ export function AvailabilityCalendar({
   const [selectionEnd, setSelectionEnd] = useState<Date | null>(null);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    onSelectionChange?.({ start: selectionStart, end: selectionEnd });
+    // onSelectionChange n'est volontairement pas dans les dépendances : on ne
+    // veut notifier le parent que lorsque la sélection change réellement.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectionStart, selectionEnd]);
 
   const canGoPrev = visibleMonth.getTime() > firstMonth.getTime();
   const secondMonth = addMonths(visibleMonth, 1);
@@ -105,6 +120,7 @@ export function AvailabilityCalendar({
     previewEnd,
     onDayClick: handleDayClick,
     onDayHover: setHoverDate,
+    size,
   };
 
   return (
@@ -132,7 +148,9 @@ export function AvailabilityCalendar({
       </div>
 
       <div
-        className="grid grid-cols-1 gap-10 md:grid-cols-2"
+        className={`grid grid-cols-1 md:grid-cols-2 ${
+          size === "large" ? "gap-x-12 gap-y-10" : "gap-10"
+        }`}
         onMouseLeave={() => setHoverDate(null)}
       >
         <Month monthDate={visibleMonth} {...monthProps} />
@@ -141,7 +159,7 @@ export function AvailabilityCalendar({
         </div>
       </div>
 
-      <div className="mt-6 min-h-16">
+      <div className="mt-6 min-h-10">
         {error && <p className="text-sm text-red-400">{error}</p>}
         {!error && selectionStart && (
           <div className="flex flex-wrap items-center gap-4">
@@ -175,13 +193,6 @@ export function AvailabilityCalendar({
             >
               Réinitialiser
             </button>
-          </div>
-        )}
-        {selectionEnd && (
-          <div className="mt-4">
-            <a href="#contact">
-              <Button variant="primary">Demander ces dates</Button>
-            </a>
           </div>
         )}
       </div>

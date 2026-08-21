@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
-import { AvailabilityCalendar } from "@/components/calendar/AvailabilityCalendar";
+import { HeroSlideshow } from "@/components/gallery/HeroSlideshow";
+import { PhotoGallery } from "@/components/gallery/PhotoGallery";
+import { BookingWidget } from "@/components/booking/BookingWidget";
 import { getBlockedDates } from "@/lib/availability";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,26 +13,33 @@ export default async function HomePage() {
 
   return (
     <main className="flex-1">
-      <section className="border-b border-wood-900 bg-anthracite-800 py-16 sm:py-24">
+      <section className="relative overflow-hidden border-b border-wood-900 py-16 sm:py-24">
+        <HeroSlideshow />
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/40"
+          aria-hidden="true"
+        />
         <Container>
-          <p className="text-sm font-semibold uppercase tracking-wide text-wood-300">
-            Risoul, Hautes-Alpes
-          </p>
-          <h1 className="mt-3 text-4xl font-bold text-foreground sm:text-5xl">
-            Les Terrasses de Risoul
-          </h1>
-          <p className="mt-4 max-w-xl text-lg text-foreground/70">
-            Un appartement au pied des pistes, à louer à la semaine ou au
-            week-end. Vérifiez les disponibilités et envoyez votre demande de
-            réservation en quelques minutes.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="#disponibilites">
-              <Button variant="primary">Voir les disponibilités</Button>
-            </Link>
-            <Link href="#contact">
-              <Button variant="secondary">Nous contacter</Button>
-            </Link>
+          <div className="relative">
+            <p className="text-sm font-semibold uppercase tracking-wide text-wood-300">
+              Risoul, Hautes-Alpes
+            </p>
+            <h1 className="mt-3 text-4xl font-bold text-foreground sm:text-5xl">
+              Les Terrasses de Risoul
+            </h1>
+            <p className="mt-4 max-w-xl text-lg text-foreground/70">
+              Un appartement au pied des pistes, à louer à la semaine ou au
+              week-end. Vérifiez les disponibilités et envoyez votre demande de
+              réservation en quelques minutes.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="#disponibilites">
+                <Button variant="primary">Voir les disponibilités</Button>
+              </Link>
+              <Link href="#contact">
+                <Button variant="secondary">Nous contacter</Button>
+              </Link>
+            </div>
           </div>
         </Container>
       </section>
@@ -41,11 +50,14 @@ export default async function HomePage() {
             Disponibilités &amp; tarifs
           </h2>
           <p className="mt-2 text-foreground/70">
-            Sélectionnez une date d&apos;arrivée et de départ pour vérifier la
-            disponibilité.
+            Regardez les photos de l&apos;appartement, puis sélectionnez vos
+            dates et le nombre de voyageurs.
           </p>
           <div className="mt-8">
-            <AvailabilityCalendar blockedDates={blockedDates} />
+            <PhotoGallery />
+          </div>
+          <div className="mt-10">
+            <BookingWidget blockedDates={blockedDates} />
           </div>
         </Container>
       </section>

@@ -6,6 +6,8 @@ import {
   isSameDay,
 } from "./utils";
 
+type CalendarSize = "default" | "large";
+
 interface MonthProps {
   monthDate: Date;
   today: Date;
@@ -15,6 +17,7 @@ interface MonthProps {
   previewEnd: Date | null;
   onDayClick: (date: Date) => void;
   onDayHover: (date: Date | null) => void;
+  size?: CalendarSize;
 }
 
 export function Month({
@@ -26,21 +29,31 @@ export function Month({
   previewEnd,
   onDayClick,
   onDayHover,
+  size = "default",
 }: MonthProps) {
   const weeks = getMonthMatrix(monthDate);
   const rangeEnd = selectionEnd ?? previewEnd;
+  const large = size === "large";
 
   return (
     <div>
-      <p className="mb-4 text-center font-semibold capitalize text-foreground">
+      <p
+        className={`mb-4 text-center font-semibold capitalize text-foreground ${
+          large ? "text-lg" : ""
+        }`}
+      >
         {formatMonthLabel(monthDate)}
       </p>
-      <div className="mb-2 grid grid-cols-7 text-center text-xs text-foreground/40">
+      <div
+        className={`mb-2 grid grid-cols-7 text-center text-foreground/40 ${
+          large ? "text-sm" : "text-xs"
+        }`}
+      >
         {WEEKDAY_LABELS.map((label, i) => (
           <span key={i}>{label}</span>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-y-1">
+      <div className={`grid grid-cols-7 ${large ? "gap-y-2" : "gap-y-1"}`}>
         {weeks.map((week, weekIndex) =>
           week.map((date, dayIndex) => {
             if (!date) {
@@ -84,6 +97,7 @@ export function Month({
                     unavailable,
                     isCap: isStart || isEnd,
                     isToday: isSameDay(date, today),
+                    large,
                   })}
                 >
                   {date.getDate()}
@@ -101,12 +115,16 @@ function dayButtonClasses({
   unavailable,
   isCap,
   isToday,
+  large,
 }: {
   unavailable: boolean;
   isCap: boolean;
   isToday: boolean;
+  large: boolean;
 }) {
-  const base = "h-9 w-9 rounded-full text-sm transition-colors";
+  const base = large
+    ? "h-12 w-12 rounded-full text-base transition-colors"
+    : "h-9 w-9 rounded-full text-sm transition-colors";
 
   if (unavailable) {
     return `${base} text-foreground/20 line-through cursor-not-allowed`;
