@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
+import { Reveal } from "@/components/ui/Reveal";
 import { HeroSlideshow } from "@/components/gallery/HeroSlideshow";
+import { HeroBadges } from "@/components/hero/HeroBadges";
 import { PhotoGallery } from "@/components/gallery/PhotoGallery";
+import { ActivityCard } from "@/components/activities/ActivityCard";
+import { ACTIVITIES } from "@/components/activities/activities";
 import { BookingWidget } from "@/components/booking/BookingWidget";
 import { getBlockedDates } from "@/lib/availability";
 import { createClient } from "@/lib/supabase/server";
@@ -32,6 +36,7 @@ export default async function HomePage() {
               week-end. Vérifiez les disponibilités et envoyez votre demande de
               réservation en quelques minutes.
             </p>
+            <HeroBadges />
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="#disponibilites">
                 <Button variant="primary">Voir les disponibilités</Button>
@@ -44,21 +49,55 @@ export default async function HomePage() {
         </Container>
       </section>
 
+      <section className="py-16">
+        <Container wide>
+          <Reveal>
+            <h2 className="text-2xl font-bold text-foreground">
+              L&apos;appartement en photos
+            </h2>
+            <p className="mt-2 text-foreground/70">
+              Un aperçu du séjour, des chambres et de la vue.
+            </p>
+            <div className="mt-8">
+              <PhotoGallery />
+            </div>
+          </Reveal>
+        </Container>
+      </section>
+
+      <section className="border-t border-wood-900 bg-anthracite-800 py-16">
+        <Container wide>
+          <Reveal>
+            <h2 className="text-2xl font-bold text-foreground">
+              À faire à Risoul
+            </h2>
+            <p className="mt-2 text-foreground/70">
+              Quelques idées pour profiter de la station, été comme hiver.
+            </p>
+          </Reveal>
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {ACTIVITIES.map((activity, i) => (
+              <Reveal key={activity.title} delayMs={i * 80}>
+                <ActivityCard activity={activity} />
+              </Reveal>
+            ))}
+          </div>
+        </Container>
+      </section>
+
       <section id="disponibilites" className="py-16">
         <Container wide>
-          <h2 className="text-2xl font-bold text-foreground">
-            Disponibilités &amp; tarifs
-          </h2>
-          <p className="mt-2 text-foreground/70">
-            Regardez les photos de l&apos;appartement, puis sélectionnez vos
-            dates et le nombre de voyageurs.
-          </p>
-          <div className="mt-8">
-            <PhotoGallery />
-          </div>
-          <div className="mt-10">
-            <BookingWidget blockedDates={blockedDates} />
-          </div>
+          <Reveal>
+            <h2 className="text-2xl font-bold text-foreground">
+              Disponibilités &amp; tarifs
+            </h2>
+            <p className="mt-2 text-foreground/70">
+              Sélectionnez vos dates et le nombre de voyageurs.
+            </p>
+            <div className="mt-8">
+              <BookingWidget blockedDates={blockedDates} />
+            </div>
+          </Reveal>
         </Container>
       </section>
 
@@ -67,13 +106,15 @@ export default async function HomePage() {
         className="border-t border-wood-900 bg-anthracite-700 py-16"
       >
         <Container>
-          <h2 className="text-2xl font-bold text-foreground">
-            Une question, une demande ?
-          </h2>
-          <p className="mt-2 max-w-xl text-foreground/70">
-            Le formulaire de demande de réservation arrive bientôt. En
-            attendant, vous pouvez nous écrire directement.
-          </p>
+          <Reveal>
+            <h2 className="text-2xl font-bold text-foreground">
+              Une question, une demande ?
+            </h2>
+            <p className="mt-2 max-w-xl text-foreground/70">
+              Le formulaire de demande de réservation arrive bientôt. En
+              attendant, vous pouvez nous écrire directement.
+            </p>
+          </Reveal>
         </Container>
       </section>
     </main>
