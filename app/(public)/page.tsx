@@ -5,20 +5,28 @@ import { Reveal } from "@/components/ui/Reveal";
 import { HeroSlideshow } from "@/components/gallery/HeroSlideshow";
 import { HeroBadges } from "@/components/hero/HeroBadges";
 import { PhotoGallery } from "@/components/gallery/PhotoGallery";
-import { ActivityCard } from "@/components/activities/ActivityCard";
-import { ACTIVITIES } from "@/components/activities/activities";
+import { LocalBusinessCard } from "@/components/activities/LocalBusinessCard";
+import {
+  LOCAL_BUSINESSES,
+  groupBusinessesByCategory,
+} from "@/components/activities/local-businesses";
 import { BookingWidget } from "@/components/booking/BookingWidget";
+import { Snowfall } from "@/components/decor/Snowfall";
+import { ChairliftDivider } from "@/components/decor/ChairliftDivider";
+import { SkiTraceDivider } from "@/components/decor/SkiTraceDivider";
 import { getBlockedDates } from "@/lib/availability";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
   const supabase = await createClient();
   const blockedDates = await getBlockedDates(supabase);
+  const businessGroups = groupBusinessesByCategory(LOCAL_BUSINESSES);
 
   return (
     <main className="flex-1">
       <section className="relative overflow-hidden border-b border-wood-900 py-16 sm:py-24">
         <HeroSlideshow />
+        <Snowfall />
         <div
           className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/40"
           aria-hidden="true"
@@ -49,57 +57,50 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      <section className="py-16">
+      <section id="disponibilites" className="py-16">
         <Container wide>
           <Reveal>
             <h2 className="text-2xl font-bold text-foreground">
-              L&apos;appartement en photos
+              L&apos;appartement
             </h2>
             <p className="mt-2 text-foreground/70">
-              Un aperçu du séjour, des chambres et de la vue.
+              Un aperçu du séjour, et vos disponibilités en un coup d&apos;œil.
             </p>
-            <div className="mt-8">
-              <PhotoGallery />
-            </div>
           </Reveal>
+          <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_360px] lg:items-start">
+            <Reveal>
+              <PhotoGallery />
+            </Reveal>
+            <div className="lg:sticky lg:top-8">
+              <BookingWidget blockedDates={blockedDates} />
+            </div>
+          </div>
         </Container>
       </section>
 
-      <section className="border-t border-wood-900 bg-anthracite-800 py-16">
+      <ChairliftDivider />
+
+      <section className="bg-anthracite-800 py-16">
         <Container wide>
           <Reveal>
             <h2 className="text-2xl font-bold text-foreground">
               À faire à Risoul
             </h2>
             <p className="mt-2 text-foreground/70">
-              Quelques idées pour profiter de la station, été comme hiver.
+              Commerces, restaurants et loisirs à deux pas de l&apos;appartement.
             </p>
           </Reveal>
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {ACTIVITIES.map((activity, i) => (
-              <Reveal key={activity.title} delayMs={i * 80}>
-                <ActivityCard activity={activity} />
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {businessGroups.map((group, i) => (
+              <Reveal key={group.category} delayMs={i * 80}>
+                <LocalBusinessCard group={group} />
               </Reveal>
             ))}
           </div>
         </Container>
       </section>
 
-      <section id="disponibilites" className="py-16">
-        <Container wide>
-          <Reveal>
-            <h2 className="text-2xl font-bold text-foreground">
-              Disponibilités &amp; tarifs
-            </h2>
-            <p className="mt-2 text-foreground/70">
-              Sélectionnez vos dates et le nombre de voyageurs.
-            </p>
-            <div className="mt-8">
-              <BookingWidget blockedDates={blockedDates} />
-            </div>
-          </Reveal>
-        </Container>
-      </section>
+      <SkiTraceDivider />
 
       <section
         id="contact"

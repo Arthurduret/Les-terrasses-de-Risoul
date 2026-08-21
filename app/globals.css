@@ -40,3 +40,60 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* Neige discrète en fond du hero (Snowfall) */
+@keyframes snowfall {
+  0% {
+    transform: translateY(-10px) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--flake-opacity, 0.5);
+  }
+  90% {
+    opacity: var(--flake-opacity, 0.5);
+  }
+  100% {
+    transform: translateY(70vh) translateX(var(--drift, 12px));
+    opacity: 0;
+  }
+}
+
+.snowflake {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 9999px;
+  background: white;
+  pointer-events: none;
+  animation-name: snowfall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Télésiège qui traverse l'écran (ChairliftDivider) */
+@keyframes chairlift-move {
+  from {
+    transform: translateX(-10vw);
+  }
+  to {
+    transform: translateX(110vw);
+  }
+}
+
+.chairlift-car {
+  animation: chairlift-move 24s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snowflake {
+    animation: none;
+    display: none;
+  }
+
+  .chairlift-car {
+    animation: none;
+    left: 50%;
+    margin-left: -1rem;
+  }
+}

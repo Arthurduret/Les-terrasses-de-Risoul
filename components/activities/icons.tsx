@@ -33,15 +33,6 @@ export function SkiIcon({ className }: IconProps) {
   );
 }
 
-export function HikeIcon({ className }: IconProps) {
-  return (
-    <IconBase className={className}>
-      <path d="M3 19L9 8l4 6 2-3 6 8H3z" />
-      <path d="M9 12l1.5 2.5" />
-    </IconBase>
-  );
-}
-
 export function RestaurantIcon({ className }: IconProps) {
   return (
     <IconBase className={className}>
@@ -66,9 +57,27 @@ export function ShopIcon({ className }: IconProps) {
   );
 }
 
+export function BakeryIcon({ className }: IconProps) {
+  return (
+    <IconBase className={className}>
+      <path d="M12 3c-2 0-3.5 1.6-3.5 3.5 0 .9.3 1.6.8 2.2C7.7 9.3 6 11 6 13.5A5.5 5.5 0 0 0 11.5 19h1A5.5 5.5 0 0 0 18 13.5c0-2.5-1.7-4.2-3.3-4.8.5-.6.8-1.3.8-2.2C15.5 4.6 14 3 12 3z" />
+      <path d="M12 9c-.5-1-.5-2 0-3" />
+    </IconBase>
+  );
+}
+
+export function LeisureIcon({ className }: IconProps) {
+  return (
+    <IconBase className={className}>
+      <path d="M12 3l2.2 4.6 5 .7-3.6 3.6.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.6 5-.7z" />
+    </IconBase>
+  );
+}
+
 export const ACTIVITY_ICONS = {
-  ski: SkiIcon,
-  hike: HikeIcon,
+  boulangerie: BakeryIcon,
+  courses: ShopIcon,
   restaurant: RestaurantIcon,
-  shop: ShopIcon,
+  loisir: LeisureIcon,
+  ski: SkiIcon,
 };
