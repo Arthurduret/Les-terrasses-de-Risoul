@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
+import { AvailabilityCalendar } from "@/components/calendar/AvailabilityCalendar";
+import { getBlockedDates } from "@/lib/availability";
+import { createClient } from "@/lib/supabase/server";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const blockedDates = await getBlockedDates(supabase);
+
   return (
     <main className="flex-1">
       <section className="border-b border-wood-900 bg-anthracite-800 py-16 sm:py-24">
@@ -30,23 +36,16 @@ export default function HomePage() {
       </section>
 
       <section id="disponibilites" className="py-16">
-        <Container>
+        <Container wide>
           <h2 className="text-2xl font-bold text-foreground">
             Disponibilités &amp; tarifs
           </h2>
           <p className="mt-2 text-foreground/70">
-            Le calendrier interactif arrive bientôt. En attendant, contactez-nous
-            directement pour connaître les disponibilités.
+            Sélectionnez une date d&apos;arrivée et de départ pour vérifier la
+            disponibilité.
           </p>
-          <div className="mt-6 flex flex-wrap gap-4 text-sm text-foreground/70">
-            <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-emerald-600" />
-              Disponible
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-foreground/25" />
-              Indisponible
-            </span>
+          <div className="mt-8">
+            <AvailabilityCalendar blockedDates={blockedDates} />
           </div>
         </Container>
       </section>

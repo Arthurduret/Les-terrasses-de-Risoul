@@ -1,5 +1,15 @@
 import type { ReactNode } from "react";
 
-export function Container({ children }: { children: ReactNode }) {
-  return <div className="mx-auto w-full max-w-3xl px-4">{children}</div>;
+export function Container({
+  children,
+  wide = false,
+}: {
+  children: ReactNode;
+  wide?: boolean;
+}) {
+  return (
+    <div className={`mx-auto w-full px-4 ${wide ? "max-w-4xl" : "max-w-3xl"}`}>
+      {children}
+    </div>
+  );
 }
