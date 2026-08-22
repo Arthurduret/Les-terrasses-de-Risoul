@@ -52,7 +52,8 @@ export default async function AdminHomePage() {
           Calendrier de disponibilité
         </h2>
         <p className="mt-2 text-sm text-mist-500">
-          Cliquez sur une date pour la bloquer ou la libérer.
+          Cliquez sur une date pour la bloquer ou la libérer, ou glissez pour
+          en sélectionner plusieurs à la fois.
         </p>
         <div className="mt-6 border border-foreground/10 bg-anthracite-800 p-6">
           <AvailabilityEditor
