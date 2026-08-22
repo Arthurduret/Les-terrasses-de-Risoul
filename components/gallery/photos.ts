@@ -24,14 +24,19 @@ export interface Photo {
 // modification de code n'est nécessaire. Pour un nouvel espace, ajoute une
 // entrée à la liste.
 export const APARTMENT_SPACES: Space[] = [
-  { id: "sejour", alt: "Séjour avec vue sur les pistes", count: 1 },
-  { id: "chambre-1", alt: "Chambre principale", count: 2 },
-  { id: "chambre-2", alt: "Deuxième chambre", count: 1 },
-  { id: "cuisine", alt: "Cuisine équipée", count: 1 },
-  { id: "salle-de-bain", alt: "Salle de bain", count: 1 },
-  { id: "terrasse", alt: "Terrasse et vue sur la montagne", count: 1 },
-  { id: "exterieur", alt: "Vue extérieure de la résidence", count: 1 },
-  { id: "sejour-hiver", alt: "Le séjour sous la neige", count: 1 },
+  { id: "salon", alt: "Salon", count: 2 },
+  { id: "chambre-1", alt: "Chambre 1", count: 2 },
+  { id: "chambre-2", alt: "Chambre 2", count: 1 },
+  { id: "coin-montagne", alt: "Coin montagne (clic-clac)", count: 2 },
+  { id: "cuisine", alt: "Cuisine", count: 1 },
+  { id: "entree", alt: "Entrée", count: 1 },
+  { id: "toilette", alt: "Toilettes — rangement chaussures de ski", count: 1 },
+  { id: "dortoir", alt: "Dortoir", count: 4 },
+  { id: "salle-de-bain-1", alt: "Salle de bain 1", count: 1 },
+  { id: "salle-de-bain-2", alt: "Salle de bain 2", count: 1 },
+  { id: "terrasse", alt: "Terrasse / balcon", count: 1 },
+  { id: "vue-drone-station", alt: "Vue drone de la station", count: 1 },
+  { id: "vue-haut-station", alt: "Vue depuis le haut de la station", count: 1 },
 ];
 
 export function photoSrc(filename: string): string {
