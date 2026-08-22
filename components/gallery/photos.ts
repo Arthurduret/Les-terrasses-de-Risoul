@@ -14,10 +14,10 @@ export interface Photo {
 // chacun. Convention de nommage des fichiers dans
 // /public/images/apartment/ :
 //
-//   {id-de-l-espace}-{numéro}.jpg     (numéro à partir de 1, TOUJOURS
+//   {id-de-l-espace}-{numéro}.jpeg     (numéro à partir de 1, TOUJOURS
 //   présent, même s'il n'y a qu'une seule photo pour cet espace)
 //
-// Exemples : chambre-1-1.jpg, chambre-1-2.jpg, sejour-1.jpg
+// Exemples : chambre-1-1.jpeg, chambre-1-2.jpeg, salon-1.jpeg
 //
 // Pour ajouter une photo à un espace existant, incrémente simplement
 // `count` ci-dessous et dépose le fichier au bon numéro — aucune autre
@@ -46,7 +46,7 @@ export function photoSrc(filename: string): string {
 
 export function getSpacePhotos(space: Space): Photo[] {
   return Array.from({ length: space.count }, (_, i) => ({
-    filename: `${space.id}-${i + 1}.jpg`,
+    filename: `${space.id}-${i + 1}.jpeg`,
     alt: space.count > 1 ? `${space.alt} — vue ${i + 1}` : space.alt,
     spaceId: space.id,
   }));
