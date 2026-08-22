@@ -56,3 +56,24 @@ export function getSpacePhotos(space: Space): Photo[] {
 // par le carrousel/lightbox pour naviguer à travers tout, y compris
 // plusieurs photos d'un même espace à la suite.
 export const APARTMENT_PHOTOS: Photo[] = APARTMENT_SPACES.flatMap(getSpacePhotos);
+
+// Sélection éditoriale pour le diaporama du hero — uniquement des plans
+// larges (vues d'ensemble, extérieur, pièces avec du recul), pas de gros
+// plans. Référence un espace + le numéro de la photo (1-indexé) plutôt que
+// de prendre automatiquement les premiers espaces de la liste.
+const HERO_SELECTION: { spaceId: string; photoNumber: number }[] = [
+  { spaceId: "vue-drone-station", photoNumber: 1 },
+  { spaceId: "batiment-exterieur", photoNumber: 2 },
+  { spaceId: "salon", photoNumber: 1 },
+  { spaceId: "terrasse", photoNumber: 1 },
+];
+
+export function getHeroPhotos(): Photo[] {
+  return HERO_SELECTION.map(({ spaceId, photoNumber }) => {
+    const space = APARTMENT_SPACES.find((s) => s.id === spaceId);
+    if (!space) {
+      throw new Error(`HERO_SELECTION référence un espace inconnu : ${spaceId}`);
+    }
+    return getSpacePhotos(space)[photoNumber - 1];
+  });
+}

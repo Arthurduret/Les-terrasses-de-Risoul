@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { ApartmentPhoto } from "./ApartmentPhoto";
-import { APARTMENT_SPACES, getSpacePhotos, photoSrc } from "./photos";
+import { getHeroPhotos, photoSrc } from "./photos";
 
 const SLIDE_DURATION_MS = 6500;
 const PARALLAX_FACTOR = 0.2;
 const PARALLAX_MAX_PX = 60;
-// Une photo par espace (pas la liste à plat) : le diaporama montre des
-// pièces variées plutôt que deux vues consécutives de la même chambre.
-const slides = APARTMENT_SPACES.slice(0, 4).map((space) => getSpacePhotos(space)[0]);
+// Sélection éditoriale de plans larges (voir HERO_SELECTION dans photos.ts),
+// pas les premiers espaces de la liste au hasard.
+const slides = getHeroPhotos();
 
 export function HeroSlideshow() {
   const [index, setIndex] = useState(0);
