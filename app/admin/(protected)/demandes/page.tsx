@@ -1,3 +1,4 @@
+import { BookingHistoryTable } from "@/components/admin/BookingHistoryTable";
 import { ConfirmSubmitButton } from "@/components/admin/ConfirmSubmitButton";
 import { formatShortDate, parseISODate } from "@/components/calendar/utils";
 import { createClient } from "@/lib/supabase/server";
@@ -19,7 +20,6 @@ export default async function AdminDemandesPage() {
 
   const requests = data ?? [];
   const pending = requests.filter((r) => r.status === "pending");
-  const processed = requests.filter((r) => r.status !== "pending");
 
   return (
     <div>
@@ -98,38 +98,16 @@ export default async function AdminDemandesPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="font-display text-xl text-mist-500">
-          Demandes traitées
+        <h2 className="font-display text-xl text-foreground">
+          Qui occupe quoi, et quand
         </h2>
-
-        {processed.length === 0 ? (
-          <p className="mt-3 text-sm text-mist-700">
-            Aucune demande traitée pour l&apos;instant.
-          </p>
-        ) : (
-          <div className="mt-4 divide-y divide-foreground/10 border-t border-foreground/10">
-            {processed.map((request) => (
-              <div
-                key={request.id}
-                className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
-              >
-                <span className="text-mist-400">
-                  {request.name} — {formatShortDate(parseISODate(request.start_date))} →{" "}
-                  {formatShortDate(parseISODate(request.end_date))}
-                </span>
-                <span
-                  className={
-                    request.status === "confirmed"
-                      ? "text-wood-500"
-                      : "text-mist-700"
-                  }
-                >
-                  {request.status === "confirmed" ? "Confirmée" : "Déclinée"}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        <p className="mt-2 text-sm text-mist-600">
+          Toutes les réservations, passées et à venir — quel que soit leur
+          statut.
+        </p>
+        <div className="mt-5">
+          <BookingHistoryTable requests={requests} />
+        </div>
       </section>
     </div>
   );

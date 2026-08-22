@@ -3,11 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-export async function blockDate(date: string) {
+export async function blockDate(date: string, note: string | null) {
   const supabase = await createClient();
   const { error } = await supabase
     .from("availability")
-    .upsert({ date, status: "blocked", note: null }, { onConflict: "date" });
+    .upsert({ date, status: "blocked", note }, { onConflict: "date" });
 
   if (error) {
     return { error: "Impossible de bloquer cette date." };

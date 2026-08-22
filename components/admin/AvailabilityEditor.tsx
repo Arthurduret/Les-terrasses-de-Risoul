@@ -40,13 +40,20 @@ export function AvailabilityEditor({ initialRows }: AvailabilityEditorProps) {
     setError(null);
 
     if (!row) {
+      const note = window.prompt(
+        "Note privée pour ce blocage (optionnel — visible uniquement dans cette console) :",
+        ""
+      );
+      if (note === null) return; // annulé
+
+      const trimmedNote = note.trim() || null;
       setRows((prev) => {
         const next = new Map(prev);
-        next.set(iso, { date: iso, status: "blocked", note: null });
+        next.set(iso, { date: iso, status: "blocked", note: trimmedNote });
         return next;
       });
       setPendingDates((p) => new Set(p).add(iso));
-      const result = await blockDate(iso);
+      const result = await blockDate(iso, trimmedNote);
       setPendingDates((p) => {
         const next = new Set(p);
         next.delete(iso);
@@ -63,13 +70,12 @@ export function AvailabilityEditor({ initialRows }: AvailabilityEditorProps) {
       return;
     }
 
-    if (row.status === "booked") {
-      const detail = row.note ? ` (${row.note})` : "";
-      const confirmed = window.confirm(
-        `Cette date est marquée réservée${detail}. La remettre disponible ?`
-      );
-      if (!confirmed) return;
-    }
+    const statusLabel = row.status === "booked" ? "réservée" : "bloquée";
+    const detail = row.note ? ` — « ${row.note} »` : "";
+    const confirmed = window.confirm(
+      `Cette date est ${statusLabel}${detail}. La remettre disponible ?`
+    );
+    if (!confirmed) return;
 
     setRows((prev) => {
       const next = new Map(prev);
