@@ -29,7 +29,7 @@ export async function createPricingRule(formData: FormData) {
     season_end: parseDate(formData.get("season_end")),
   });
 
-  revalidatePath("/admin/tarifs");
+  revalidatePath("/admin");
   revalidatePath("/");
 }
 
@@ -51,7 +51,7 @@ export async function updatePricingRule(id: string, formData: FormData) {
     })
     .eq("id", id);
 
-  revalidatePath("/admin/tarifs");
+  revalidatePath("/admin");
   revalidatePath("/");
 }
 
@@ -59,6 +59,6 @@ export async function deletePricingRule(id: string) {
   const supabase = await createClient();
   await supabase.from("pricing_rules").delete().eq("id", id);
 
-  revalidatePath("/admin/tarifs");
+  revalidatePath("/admin");
   revalidatePath("/");
 }

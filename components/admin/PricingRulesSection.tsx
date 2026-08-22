@@ -1,27 +1,20 @@
+import {
+  createPricingRule,
+  deletePricingRule,
+  updatePricingRule,
+} from "@/app/admin/(protected)/actions/pricing";
 import { Button } from "@/components/ui/Button";
-import { ConfirmSubmitButton } from "@/components/admin/ConfirmSubmitButton";
-import { PricingRuleFields } from "@/components/admin/PricingRuleFields";
-import { createClient } from "@/lib/supabase/server";
-import { createPricingRule, deletePricingRule, updatePricingRule } from "./actions";
+import { ConfirmSubmitButton } from "./ConfirmSubmitButton";
+import { PricingRuleFields } from "./PricingRuleFields";
+import type { Database } from "@/lib/supabase/database.types";
 
-export default async function AdminTarifsPage() {
-  const supabase = await createClient();
-  const { data: rules } = await supabase
-    .from("pricing_rules")
-    .select("*")
-    .order("min_nights", { ascending: true, nullsFirst: true });
+type PricingRule = Database["public"]["Tables"]["pricing_rules"]["Row"];
 
+export function PricingRulesSection({ rules }: { rules: PricingRule[] }) {
   return (
     <div>
-      <h1 className="font-display text-3xl text-foreground">Tarifs</h1>
-      <p className="mt-2 text-mist-500">
-        Le site affiche automatiquement le tarif le plus bas parmi ceux
-        renseignés ici. La réduction s&apos;applique au nombre total de
-        nuits de la demande.
-      </p>
-
-      <div className="mt-8 space-y-6">
-        {(rules ?? []).map((rule) => (
+      <div className="space-y-6">
+        {rules.map((rule) => (
           <form
             key={rule.id}
             action={updatePricingRule.bind(null, rule.id)}
@@ -43,7 +36,7 @@ export default async function AdminTarifsPage() {
           </form>
         ))}
 
-        {(rules ?? []).length === 0 && (
+        {rules.length === 0 && (
           <p className="text-sm text-mist-600">
             Aucun tarif enregistré pour l&apos;instant — le site affichera
             « Tarifs à venir » tant qu&apos;aucun n&apos;est ajouté.
@@ -52,9 +45,9 @@ export default async function AdminTarifsPage() {
       </div>
 
       <div className="mt-10 border-t border-foreground/10 pt-8">
-        <h2 className="font-display text-xl text-foreground">
+        <h3 className="font-display text-lg text-foreground">
           Ajouter un tarif
-        </h2>
+        </h3>
         <form
           action={createPricingRule}
           className="mt-4 border border-foreground/10 bg-anthracite-800 p-6"

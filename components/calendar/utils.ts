@@ -51,6 +51,16 @@ export function formatShortDate(date: Date): string {
   }).format(date);
 }
 
+export function formatLongDate(date: Date): string {
+  const label = new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 // Grille du mois en semaines de 7 jours, alignée lundi → dimanche.
 export function getMonthMatrix(monthDate: Date): (Date | null)[][] {
   const year = monthDate.getFullYear();

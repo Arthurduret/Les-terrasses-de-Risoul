@@ -13,7 +13,7 @@ export async function blockDate(date: string, note: string | null) {
     return { error: "Impossible de bloquer cette date." };
   }
 
-  revalidatePath("/admin/disponibilites");
+  revalidatePath("/admin");
   revalidatePath("/");
   return { error: null };
 }
@@ -26,7 +26,7 @@ export async function unblockDate(date: string) {
     return { error: "Impossible de libérer cette date." };
   }
 
-  revalidatePath("/admin/disponibilites");
+  revalidatePath("/admin");
   revalidatePath("/");
   return { error: null };
 }

@@ -57,8 +57,7 @@ export async function confirmBookingRequest(
     );
   }
 
-  revalidatePath("/admin/demandes");
-  revalidatePath("/admin/disponibilites");
+  revalidatePath("/admin");
   revalidatePath("/");
 }
 
@@ -74,5 +73,5 @@ export async function declineBookingRequest(id: string): Promise<void> {
     return;
   }
 
-  revalidatePath("/admin/demandes");
+  revalidatePath("/admin");
 }

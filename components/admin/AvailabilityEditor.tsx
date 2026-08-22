@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { blockDate, unblockDate } from "@/app/admin/(protected)/disponibilites/actions";
+import { blockDate, unblockDate } from "@/app/admin/(protected)/actions/availability";
+import { DayEditModal } from "./DayEditModal";
 import {
   WEEKDAY_LABELS,
   addMonths,
@@ -31,51 +32,50 @@ export function AvailabilityEditor({ initialRows }: AvailabilityEditorProps) {
   );
   const [pendingDates, setPendingDates] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [editingDate, setEditingDate] = useState<Date | null>(null);
   const today = useMemo(() => startOfDay(new Date()), []);
   const secondMonth = addMonths(visibleMonth, 1);
 
-  async function handleDayClick(date: Date) {
+  const editingIso = editingDate ? formatISO(editingDate) : null;
+  const editingRow = editingIso ? rows.get(editingIso) : undefined;
+  const editingPending = editingIso ? pendingDates.has(editingIso) : false;
+
+  async function handleBlock(note: string | null) {
+    const date = editingDate;
+    if (!date) return;
     const iso = formatISO(date);
-    const row = rows.get(iso);
     setError(null);
+    setEditingDate(null);
 
-    if (!row) {
-      const note = window.prompt(
-        "Note privée pour ce blocage (optionnel — visible uniquement dans cette console) :",
-        ""
-      );
-      if (note === null) return; // annulé
-
-      const trimmedNote = note.trim() || null;
+    setRows((prev) => {
+      const next = new Map(prev);
+      next.set(iso, { date: iso, status: "blocked", note });
+      return next;
+    });
+    setPendingDates((p) => new Set(p).add(iso));
+    const result = await blockDate(iso, note);
+    setPendingDates((p) => {
+      const next = new Set(p);
+      next.delete(iso);
+      return next;
+    });
+    if (result.error) {
+      setError(result.error);
       setRows((prev) => {
         const next = new Map(prev);
-        next.set(iso, { date: iso, status: "blocked", note: trimmedNote });
-        return next;
-      });
-      setPendingDates((p) => new Set(p).add(iso));
-      const result = await blockDate(iso, trimmedNote);
-      setPendingDates((p) => {
-        const next = new Set(p);
         next.delete(iso);
         return next;
       });
-      if (result.error) {
-        setError(result.error);
-        setRows((prev) => {
-          const next = new Map(prev);
-          next.delete(iso);
-          return next;
-        });
-      }
-      return;
     }
+  }
 
-    const statusLabel = row.status === "booked" ? "réservée" : "bloquée";
-    const detail = row.note ? ` — « ${row.note} »` : "";
-    const confirmed = window.confirm(
-      `Cette date est ${statusLabel}${detail}. La remettre disponible ?`
-    );
-    if (!confirmed) return;
+  async function handleRelease() {
+    const date = editingDate;
+    if (!date) return;
+    const iso = formatISO(date);
+    const previous = rows.get(iso);
+    setError(null);
+    setEditingDate(null);
 
     setRows((prev) => {
       const next = new Map(prev);
@@ -91,11 +91,13 @@ export function AvailabilityEditor({ initialRows }: AvailabilityEditorProps) {
     });
     if (result.error) {
       setError(result.error);
-      setRows((prev) => {
-        const next = new Map(prev);
-        next.set(iso, row);
-        return next;
-      });
+      if (previous) {
+        setRows((prev) => {
+          const next = new Map(prev);
+          next.set(iso, previous);
+          return next;
+        });
+      }
     }
   }
 
@@ -126,7 +128,7 @@ export function AvailabilityEditor({ initialRows }: AvailabilityEditorProps) {
                   key={iso}
                   type="button"
                   disabled={isPendingDate}
-                  onClick={() => handleDayClick(date)}
+                  onClick={() => setEditingDate(date)}
                   title={row?.note ?? undefined}
                   className={dayClasses({
                     status: row?.status,
@@ -186,6 +188,15 @@ export function AvailabilityEditor({ initialRows }: AvailabilityEditorProps) {
           Réservé
         </span>
       </div>
+
+      <DayEditModal
+        date={editingDate}
+        row={editingRow}
+        pending={editingPending}
+        onClose={() => setEditingDate(null)}
+        onBlock={handleBlock}
+        onRelease={handleRelease}
+      />
     </div>
   );
 }
@@ -199,8 +210,7 @@ function dayClasses({
   isPast: boolean;
   isPendingDate: boolean;
 }) {
-  const base =
-    "flex h-11 items-center justify-center rounded-[6px] text-sm transition-colors";
+  const base = "flex h-11 items-center justify-center rounded-[6px] text-sm transition-colors";
 
   if (isPendingDate) {
     return `${base} cursor-wait opacity-50`;
