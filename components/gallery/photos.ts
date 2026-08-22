@@ -37,6 +37,7 @@ export const APARTMENT_SPACES: Space[] = [
   { id: "terrasse", alt: "Terrasse / balcon", count: 1 },
   { id: "vue-drone-station", alt: "Vue drone de la station", count: 1 },
   { id: "vue-haut-station", alt: "Vue depuis le haut de la station", count: 1 },
+  { id: "batiment-exterieur", alt: "Vue du bâtiment extérieur", count: 3 },
 ];
 
 export function photoSrc(filename: string): string {
