@@ -28,6 +28,14 @@ export function formatISO(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// Parse un "YYYY-MM-DD" en Date locale (pas new Date(string), qui
+// interprète les dates sans heure comme UTC minuit et peut décaler le
+// jour affiché selon le fuseau du serveur).
+export function parseISODate(iso: string): Date {
+  const [year, month, day] = iso.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 export function formatMonthLabel(date: Date): string {
   const label = new Intl.DateTimeFormat("fr-FR", {
     month: "long",
@@ -41,6 +49,16 @@ export function formatShortDate(date: Date): string {
     day: "numeric",
     month: "short",
   }).format(date);
+}
+
+export function formatLongDate(date: Date): string {
+  const label = new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 // Grille du mois en semaines de 7 jours, alignée lundi → dimanche.
