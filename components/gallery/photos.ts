@@ -65,7 +65,7 @@ const HERO_SELECTION: { spaceId: string; photoNumber: number }[] = [
   { spaceId: "vue-drone-station", photoNumber: 1 },
   { spaceId: "batiment-exterieur", photoNumber: 2 },
   { spaceId: "salon", photoNumber: 1 },
-  { spaceId: "terrasse", photoNumber: 1 },
+  { spaceId: "cuisine", photoNumber: 1 },
 ];
 
 export function getHeroPhotos(): Photo[] {
