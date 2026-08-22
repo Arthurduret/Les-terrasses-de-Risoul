@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { ApartmentPhoto } from "./ApartmentPhoto";
-import { APARTMENT_PHOTOS, photoSrc } from "./photos";
+import { APARTMENT_SPACES, getSpacePhotos, photoSrc } from "./photos";
 
 const SLIDE_DURATION_MS = 6500;
 const PARALLAX_FACTOR = 0.2;
 const PARALLAX_MAX_PX = 60;
-const slides = APARTMENT_PHOTOS.slice(0, 4);
+// Une photo par espace (pas la liste à plat) : le diaporama montre des
+// pièces variées plutôt que deux vues consécutives de la même chambre.
+const slides = APARTMENT_SPACES.slice(0, 4).map((space) => getSpacePhotos(space)[0]);
 
 export function HeroSlideshow() {
   const [index, setIndex] = useState(0);
