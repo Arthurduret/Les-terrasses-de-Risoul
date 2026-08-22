@@ -28,6 +28,14 @@ export function formatISO(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// Parse un "YYYY-MM-DD" en Date locale (pas new Date(string), qui
+// interprète les dates sans heure comme UTC minuit et peut décaler le
+// jour affiché selon le fuseau du serveur).
+export function parseISODate(iso: string): Date {
+  const [year, month, day] = iso.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 export function formatMonthLabel(date: Date): string {
   const label = new Intl.DateTimeFormat("fr-FR", {
     month: "long",
