@@ -6,7 +6,7 @@ import { HeroSlideshow } from "@/components/gallery/HeroSlideshow";
 import { HeroBadges } from "@/components/hero/HeroBadges";
 import { PhotoGallery } from "@/components/gallery/PhotoGallery";
 import { LocalBusinessCard } from "@/components/activities/LocalBusinessCard";
-import { ChairliftBusinessCard } from "@/components/activities/ChairliftBusinessCard";
+import { ChairliftShowcase } from "@/components/activities/ChairliftShowcase";
 import { LOCAL_BUSINESSES } from "@/components/activities/local-businesses";
 import { BookingWidget } from "@/components/booking/BookingWidget";
 import { Snowfall } from "@/components/decor/Snowfall";
@@ -23,6 +23,11 @@ export default async function HomePage() {
     getSettings(supabase),
     supabase.from("pricing_rules").select("*"),
   ]);
+
+  // Commerces avec une couleur définie : mis en avant dans la scène
+  // télésiège partagée plutôt que dans la grille (test avant généralisation).
+  const chairliftBusinesses = LOCAL_BUSINESSES.filter((b) => b.accentColor);
+  const gridBusinesses = LOCAL_BUSINESSES.filter((b) => !b.accentColor);
 
   return (
     <main className="flex-1">
@@ -122,14 +127,13 @@ export default async function HomePage() {
               l&apos;appartement.
             </p>
           </Reveal>
-          <div className="mt-12 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-            {LOCAL_BUSINESSES.map((business, i) => (
+
+          <ChairliftShowcase businesses={chairliftBusinesses} />
+
+          <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            {gridBusinesses.map((business, i) => (
               <Reveal key={business.id} delayMs={(i % 3) * 80}>
-                {business.accentColor ? (
-                  <ChairliftBusinessCard business={business} />
-                ) : (
-                  <LocalBusinessCard business={business} />
-                )}
+                <LocalBusinessCard business={business} />
               </Reveal>
             ))}
           </div>
