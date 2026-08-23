@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 import { Reveal } from "@/components/ui/Reveal";
 import { HeroSlideshow } from "@/components/gallery/HeroSlideshow";
 import { HeroBadges } from "@/components/hero/HeroBadges";
@@ -40,9 +41,7 @@ export default async function HomePage() {
 
         <div className="relative z-[8] flex h-full flex-col justify-between px-5 py-8 sm:px-10 sm:py-10">
           <div className="flex flex-wrap items-center justify-between gap-6">
-            <span className="font-display text-lg tracking-[0.22em] text-foreground uppercase">
-              Risoul 1850
-            </span>
+            <Logo />
             <div className="flex gap-7 text-xs tracking-[0.16em] text-mist-400 uppercase">
               <Link href="#disponibilites" className="hover:text-foreground">
                 Réserver
