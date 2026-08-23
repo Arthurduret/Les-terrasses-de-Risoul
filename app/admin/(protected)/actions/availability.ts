@@ -1,23 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { currentAdminLabel } from "@/lib/adminLabel";
 import { createClient } from "@/lib/supabase/server";
-
-// L'email de l'admin qui agit vient toujours de sa session vérifiée
-// côté serveur, jamais d'une valeur envoyée par le client — impossible
-// à falsifier en trafiquant la requête.
-async function currentAdminEmail(
-  supabase: Awaited<ReturnType<typeof createClient>>
-): Promise<string | null> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user?.email ?? null;
-}
 
 export async function blockDate(date: string, note: string | null) {
   const supabase = await createClient();
-  const updated_by = await currentAdminEmail(supabase);
+  const updated_by = await currentAdminLabel(supabase);
   const { error } = await supabase
     .from("availability")
     .upsert({ date, status: "blocked", note, updated_by }, { onConflict: "date" });
@@ -48,7 +37,7 @@ export async function blockDates(dates: string[], note: string | null) {
   if (dates.length === 0) return { error: null };
 
   const supabase = await createClient();
-  const updated_by = await currentAdminEmail(supabase);
+  const updated_by = await currentAdminLabel(supabase);
   const rows = dates.map((date) => ({ date, status: "blocked" as const, note, updated_by }));
   const { error } = await supabase.from("availability").upsert(rows, { onConflict: "date" });
 

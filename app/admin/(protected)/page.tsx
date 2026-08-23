@@ -2,13 +2,12 @@ import { AvailabilityEditor } from "@/components/admin/AvailabilityEditor";
 import { BookingHistoryTable } from "@/components/admin/BookingHistoryTable";
 import { PendingRequestsSection } from "@/components/admin/PendingRequestsSection";
 import { PricingRulesSection } from "@/components/admin/PricingRulesSection";
+import { currentAdminLabel } from "@/lib/adminLabel";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminHomePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const adminLabel = await currentAdminLabel(supabase);
 
   const [
     { data: availabilityRows },
@@ -60,7 +59,7 @@ export default async function AdminHomePage() {
         </p>
         <div className="mt-6 border border-foreground/10 bg-anthracite-800 p-6">
           <AvailabilityEditor
-            currentAdminEmail={user?.email ?? null}
+            currentAdminLabel={adminLabel}
             initialRows={(availabilityRows ?? []).map((row) => ({
               date: row.date,
               status: row.status as "blocked" | "booked",

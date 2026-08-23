@@ -2,15 +2,46 @@ import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/admin/FormField";
 import { getSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
-import { updateSettings } from "./actions";
+import { updateAdminName, updateSettings } from "./actions";
 
 export default async function AdminParametresPage() {
   const supabase = await createClient();
   const settings = await getSettings(supabase);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <div>
       <h1 className="font-display text-3xl text-foreground">Paramètres</h1>
+
+      <section className="mt-8 max-w-xl">
+        <h2 className="font-display text-xl text-foreground">Votre profil</h2>
+        <p className="mt-2 text-sm text-mist-500">
+          Ce nom apparaît quand vous bloquez une date ou traitez une demande,
+          à la place de votre email.
+        </p>
+        <form
+          action={updateAdminName}
+          className="mt-5 space-y-5 border border-foreground/10 bg-anthracite-800 p-6"
+        >
+          <FormField
+            name="full_name"
+            label="Nom affiché"
+            placeholder="Ex. Arthur"
+            defaultValue={
+              typeof user?.user_metadata?.full_name === "string"
+                ? user.user_metadata.full_name
+                : ""
+            }
+          />
+          <Button type="submit" variant="primary">
+            Enregistrer
+          </Button>
+        </form>
+      </section>
+
+      <h2 className="mt-12 font-display text-xl text-foreground">Tarifs et réservation</h2>
       <p className="mt-2 text-mist-500">
         Ces valeurs sont utilisées pour calculer le prix affiché aux
         visiteurs. Laissez un champ vide pour ne pas l&apos;utiliser.

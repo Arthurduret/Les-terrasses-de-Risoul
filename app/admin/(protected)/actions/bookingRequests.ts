@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { formatISO, parseISODate } from "@/components/calendar/utils";
+import { currentAdminLabel } from "@/lib/adminLabel";
 import { createClient } from "@/lib/supabase/server";
 
 // Toutes les dates entre deux jours inclus, au format YYYY-MM-DD — même
@@ -26,16 +27,13 @@ export async function confirmBookingRequest(
   guestName: string
 ): Promise<void> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const adminEmail = user?.email ?? null;
+  const adminLabel = await currentAdminLabel(supabase);
 
   const rows = eachDateInclusive(startDate, endDate).map((date) => ({
     date,
     status: "booked" as const,
     note: `Réservé par ${guestName}`,
-    updated_by: adminEmail,
+    updated_by: adminLabel,
   }));
 
   const { error: availabilityError } = await supabase
@@ -52,7 +50,7 @@ export async function confirmBookingRequest(
 
   const { error: requestError } = await supabase
     .from("booking_requests")
-    .update({ status: "confirmed", processed_by: adminEmail })
+    .update({ status: "confirmed", processed_by: adminLabel })
     .eq("id", id);
 
   if (requestError) {
@@ -68,13 +66,11 @@ export async function confirmBookingRequest(
 
 export async function declineBookingRequest(id: string): Promise<void> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const adminLabel = await currentAdminLabel(supabase);
 
   const { error } = await supabase
     .from("booking_requests")
-    .update({ status: "declined", processed_by: user?.email ?? null })
+    .update({ status: "declined", processed_by: adminLabel })
     .eq("id", id);
 
   if (error) {

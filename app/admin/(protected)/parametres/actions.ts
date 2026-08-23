@@ -11,6 +11,16 @@ const SETTINGS_KEYS = [
   "airbnb_link",
 ] as const;
 
+export async function updateAdminName(formData: FormData) {
+  const supabase = await createClient();
+  const full_name = String(formData.get("full_name") ?? "").trim();
+
+  await supabase.auth.updateUser({ data: { full_name } });
+
+  revalidatePath("/admin/parametres");
+  revalidatePath("/admin");
+}
+
 export async function updateSettings(formData: FormData) {
   const supabase = await createClient();
 

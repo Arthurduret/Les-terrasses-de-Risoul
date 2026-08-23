@@ -32,10 +32,10 @@ interface AvailabilityEditorProps {
   // Pour l'affichage optimiste immédiat ("Bloqué par vous") — le serveur
   // dérive de toute façon la vraie valeur depuis la session, celle-ci ne
   // sert qu'à éviter un flash le temps de la revalidation.
-  currentAdminEmail: string | null;
+  currentAdminLabel: string | null;
 }
 
-export function AvailabilityEditor({ initialRows, currentAdminEmail }: AvailabilityEditorProps) {
+export function AvailabilityEditor({ initialRows, currentAdminLabel }: AvailabilityEditorProps) {
   const [rows, setRows] = useState<Map<string, Row>>(
     () => new Map(initialRows.map((r) => [r.date, r]))
   );
@@ -141,7 +141,7 @@ export function AvailabilityEditor({ initialRows, currentAdminEmail }: Availabil
 
     setRows((prev) => {
       const next = new Map(prev);
-      next.set(iso, { date: iso, status: "blocked", note, updated_by: currentAdminEmail });
+      next.set(iso, { date: iso, status: "blocked", note, updated_by: currentAdminLabel });
       return next;
     });
     setPendingDates((p) => new Set(p).add(iso));
@@ -200,7 +200,7 @@ export function AvailabilityEditor({ initialRows, currentAdminEmail }: Availabil
     setRows((prev) => {
       const next = new Map(prev);
       dates.forEach((iso) =>
-        next.set(iso, { date: iso, status: "blocked", note, updated_by: currentAdminEmail })
+        next.set(iso, { date: iso, status: "blocked", note, updated_by: currentAdminLabel })
       );
       return next;
     });
