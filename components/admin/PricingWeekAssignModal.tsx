@@ -33,6 +33,8 @@ export function PricingWeekAssignModal({
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
+    if (weeks.length === 0) return;
+
     function handleKey(event: KeyboardEvent) {
       if (event.key === "Escape" && !pending) onClose();
     }
@@ -43,7 +45,7 @@ export function PricingWeekAssignModal({
       document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "";
     };
-  }, [onClose, pending]);
+  }, [weeks, onClose, pending]);
 
   if (!mounted || weeks.length === 0) return null;
 
