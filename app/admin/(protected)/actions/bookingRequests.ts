@@ -140,3 +140,47 @@ export async function declineBookingRequest(id: string): Promise<void> {
 
   revalidatePath("/admin");
 }
+
+// Suppression manuelle (ex. nettoyage de demandes de test) — si la demande
+// était confirmée, libère aussi les dates qu'elle avait bloquées, pour ne
+// pas laisser de dates "réservées" fantômes sans demande associée.
+export async function deleteBookingRequest(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  const { data: request, error: fetchError } = await supabase
+    .from("booking_requests")
+    .select("status, start_date, end_date")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !request) {
+    console.error("Impossible de charger la demande à supprimer :", fetchError?.message);
+    return;
+  }
+
+  if (request.status === "confirmed") {
+    const dates = eachNightInclusive(request.start_date, request.end_date);
+    const { error: availabilityError } = await supabase
+      .from("availability")
+      .delete()
+      .in("date", dates);
+
+    if (availabilityError) {
+      console.error(
+        "Erreur lors de la libération des dates :",
+        availabilityError.message
+      );
+      return;
+    }
+  }
+
+  const { error } = await supabase.from("booking_requests").delete().eq("id", id);
+
+  if (error) {
+    console.error("Erreur lors de la suppression de la demande :", error.message);
+    return;
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+}

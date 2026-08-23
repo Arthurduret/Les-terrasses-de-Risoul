@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { deleteBookingRequest } from "@/app/admin/(protected)/actions/bookingRequests";
 import { formatShortDate, parseISODate, startOfDay } from "@/components/calendar/utils";
+import { ConfirmSubmitButton } from "./ConfirmSubmitButton";
 
 interface BookingRequestRow {
   id: string;
@@ -89,7 +91,7 @@ export function BookingHistoryTable({
         </p>
       ) : (
         <div className="mt-5 overflow-x-auto">
-          <table className="w-full min-w-[820px] border-collapse text-sm">
+          <table className="w-full min-w-[940px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-foreground/15 text-left text-xs tracking-wide text-mist-600 uppercase">
                 <th className="pb-2 pr-4 font-normal">Voyageur</th>
@@ -98,7 +100,8 @@ export function BookingHistoryTable({
                 <th className="pb-2 pr-4 font-normal">Personnes</th>
                 <th className="pb-2 pr-4 font-normal">Ménage</th>
                 <th className="pb-2 pr-4 font-normal">Statut</th>
-                <th className="pb-2 font-normal">Traité par</th>
+                <th className="pb-2 pr-4 font-normal">Traité par</th>
+                <th className="pb-2 font-normal">&nbsp;</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/10">
@@ -125,8 +128,18 @@ export function BookingHistoryTable({
                       {STATUS_LABELS[r.status] ?? r.status}
                     </span>
                   </td>
-                  <td className="py-3 whitespace-nowrap text-mist-600">
+                  <td className="py-3 pr-4 whitespace-nowrap text-mist-600">
                     {r.processed_by ?? "—"}
+                  </td>
+                  <td className="py-3 whitespace-nowrap">
+                    <ConfirmSubmitButton
+                      action={deleteBookingRequest.bind(null, r.id)}
+                      confirmMessage={`Supprimer définitivement la réservation de ${r.first_name} ${r.last_name} (${formatShortDate(parseISODate(r.start_date))} → ${formatShortDate(parseISODate(r.end_date))}) ?${r.status === "confirmed" ? " Les dates bloquées seront libérées." : ""}`}
+                      variant="secondary"
+                      className="px-3 py-1.5 text-xs"
+                    >
+                      Supprimer
+                    </ConfirmSubmitButton>
                   </td>
                 </tr>
               ))}
