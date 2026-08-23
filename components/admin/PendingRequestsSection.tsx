@@ -67,9 +67,9 @@ export function PendingRequestsSection({
               Reçue le {formatReceivedAt(request.created_at)}
             </p>
 
-            <form className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-3">
               <ConfirmSubmitButton
-                formAction={confirmBookingRequest.bind(
+                action={confirmBookingRequest.bind(
                   null,
                   request.id,
                   request.start_date,
@@ -86,13 +86,13 @@ export function PendingRequestsSection({
                 Confirmer
               </ConfirmSubmitButton>
               <ConfirmSubmitButton
-                formAction={declineBookingRequest.bind(null, request.id)}
+                action={declineBookingRequest.bind(null, request.id)}
                 confirmMessage={`Décliner la demande de ${fullName} ?`}
                 variant="secondary"
               >
                 Décliner
               </ConfirmSubmitButton>
-            </form>
+            </div>
           </div>
         );
       })}

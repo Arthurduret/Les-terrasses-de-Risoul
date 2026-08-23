@@ -26,7 +26,7 @@ export function PricingRulesSection({ rules }: { rules: PricingRule[] }) {
                 Enregistrer
               </Button>
               <ConfirmSubmitButton
-                formAction={deletePricingRule.bind(null, rule.id)}
+                action={deletePricingRule.bind(null, rule.id)}
                 confirmMessage={`Supprimer le tarif "${rule.label}" ?`}
                 variant="secondary"
               >
