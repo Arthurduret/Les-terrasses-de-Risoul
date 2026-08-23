@@ -3,8 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { AvailabilityCalendar } from "@/components/calendar/AvailabilityCalendar";
+import { formatISO, startOfDay } from "@/components/calendar/utils";
 import { BookingRequestModal } from "./BookingRequestModal";
-import { calculateTotalPrice, type PriceBreakdown, type WeekAssignments } from "@/lib/pricing";
+import {
+  calculateTotalPrice,
+  getUpcomingRule,
+  type PriceBreakdown,
+  type WeekAssignments,
+} from "@/lib/pricing";
 import type { Database } from "@/lib/supabase/database.types";
 
 type PricingRule = Database["public"]["Tables"]["pricing_rules"]["Row"];
@@ -76,19 +82,28 @@ export function BookingWidget({
 
   const weeks = breakdown ? Math.round(breakdown.nights / 7) : 0;
 
+  const todayISO = formatISO(startOfDay(new Date()));
+  const headerRule =
+    breakdown && !priceError
+      ? { label: breakdown.ruleLabel, pricePerNight: breakdown.pricePerNight }
+      : (() => {
+          const rule = getUpcomingRule(pricingRules, weekAssignments, todayISO);
+          return rule ? { label: rule.label, pricePerNight: rule.price_per_night } : null;
+        })();
+
   return (
     <div className="rounded-[4px] border border-foreground/[0.12] bg-anthracite-800 p-[26px]">
       <div className="mb-[22px] flex min-h-[38px] items-baseline justify-between gap-3">
-        {breakdown && !priceError ? (
+        {headerRule ? (
           <>
             <div>
               <span className="font-display text-[34px] font-medium text-foreground">
-                {eur(breakdown.pricePerNight * 7)}
+                {eur(headerRule.pricePerNight * 7)}
               </span>
               <span className="ml-1 text-sm text-mist-600">/ semaine</span>
             </div>
             <span className="text-xs tracking-[0.14em] text-wood-500 uppercase">
-              {breakdown.ruleLabel}
+              {headerRule.label}
             </span>
           </>
         ) : (
@@ -104,12 +119,12 @@ export function BookingWidget({
         onSelectionChange={setRange}
       />
 
-      <div className="mt-5 flex items-center justify-between border-t border-foreground/[0.12] pt-5">
+      <div className="mt-[18px] flex items-center justify-between border-t border-foreground/[0.12] pt-[18px]">
         <div>
           <div className="text-xs tracking-[0.14em] text-mist-600 uppercase">
             Voyageurs
           </div>
-          <div className="mt-1 text-base text-foreground">
+          <div className="mt-[3px] text-base text-foreground">
             {guests} voyageur{guests > 1 ? "s" : ""}
           </div>
         </div>
@@ -132,14 +147,14 @@ export function BookingWidget({
       </div>
 
       {priceError && (
-        <p className="mt-5 border-t border-foreground/[0.12] pt-5 text-sm text-mist-500">
+        <p className="mt-[18px] border-t border-foreground/[0.12] pt-[18px] text-sm text-mist-500">
           {priceError}
         </p>
       )}
 
       {breakdown && !priceError && (
-        <div className="mt-5 border-t border-foreground/[0.12] pt-5">
-          <div className="flex items-baseline justify-between text-sm text-mist-400">
+        <div className="mt-[18px] border-t border-foreground/[0.12] pt-[18px]">
+          <div className="flex items-baseline justify-between text-[14.5px] text-mist-400">
             <span>
               {eur(breakdown.pricePerNight * 7)} / semaine × {weeks} semaine
               {weeks > 1 ? "s" : ""}
@@ -147,13 +162,13 @@ export function BookingWidget({
             <span className="text-foreground">{eur(breakdown.subtotal)}</span>
           </div>
           {breakdown.discountPercent > 0 && (
-            <div className="mt-2.5 flex items-baseline justify-between text-sm text-wood-500">
+            <div className="mt-[11px] flex items-baseline justify-between text-[14.5px] text-wood-500">
               <span>Remise séjour long (-{breakdown.discountPercent}%)</span>
               <span>-{eur(breakdown.subtotal - breakdown.total)}</span>
             </div>
           )}
-          <div className="mt-4 flex items-baseline justify-between border-t border-foreground/[0.12] pt-4">
-            <span className="text-xs tracking-[0.16em] text-mist-600 uppercase">
+          <div className="mt-[18px] flex items-baseline justify-between border-t border-foreground/[0.12] pt-[18px]">
+            <span className="text-xs tracking-[0.14em] text-mist-600 uppercase">
               Total
             </span>
             <span className="font-display text-[30px] text-foreground">
@@ -166,7 +181,8 @@ export function BookingWidget({
       <Button
         type="button"
         variant="primary"
-        className="mt-5 w-full"
+        className="mt-5 w-full text-[13.5px]"
+        style={{ paddingLeft: 16, paddingRight: 16 }}
         disabled={!range.start || !range.end}
         onClick={() => setRequestOpen(true)}
       >

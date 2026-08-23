@@ -6,6 +6,7 @@ import {
   addMonths,
   firstBlockedAfter,
   formatISO,
+  formatMonthLabel,
   formatShortDate,
   isSaturday,
   rangeHasBlockedDay,
@@ -124,36 +125,64 @@ export function AvailabilityCalendar({
     onDayClick: handleDayClick,
     onDayHover: setHoverDate,
     size,
+    showLabel: months === 2,
   };
 
   const navButtonClasses = (enabled: boolean) =>
-    `flex h-8 w-8 items-center justify-center rounded-[2px] border text-mist-300 text-base leading-none transition-colors ${
+    `flex h-8 w-8 items-center justify-center rounded-[2px] border text-[15px] leading-none transition-colors ${
       enabled
-        ? "border-foreground/18 hover:border-wood-500 hover:text-foreground"
-        : "cursor-not-allowed border-foreground/10 opacity-30"
+        ? "border-foreground/18 text-mist-300 hover:border-wood-500 hover:text-foreground"
+        : "cursor-not-allowed border-foreground/10 text-mist-300 opacity-30"
     }`;
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={handlePrev}
-          disabled={!canGoPrev}
-          aria-label="Mois précédent"
-          className={navButtonClasses(canGoPrev)}
-        >
-          ‹
-        </button>
-        <button
-          type="button"
-          onClick={handleNext}
-          aria-label="Mois suivant"
-          className={navButtonClasses(true)}
-        >
-          ›
-        </button>
-      </div>
+      {months === 1 && (
+        <div className="mb-[14px] flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handlePrev}
+            disabled={!canGoPrev}
+            aria-label="Mois précédent"
+            className={navButtonClasses(canGoPrev)}
+          >
+            ‹
+          </button>
+          <div className="text-sm tracking-[0.16em] text-foreground uppercase">
+            {formatMonthLabel(visibleMonth)}
+          </div>
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Mois suivant"
+            className={navButtonClasses(true)}
+          >
+            ›
+          </button>
+        </div>
+      )}
+
+      {months === 2 && (
+        <div className="mb-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handlePrev}
+            disabled={!canGoPrev}
+            aria-label="Mois précédent"
+            className={navButtonClasses(canGoPrev)}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Mois suivant"
+            className={navButtonClasses(true)}
+          >
+            ›
+          </button>
+        </div>
+      )}
 
       <div
         className={`grid grid-cols-1 ${months === 2 ? "md:grid-cols-2" : ""} ${
@@ -169,18 +198,14 @@ export function AvailabilityCalendar({
         )}
       </div>
 
-      <div className="mt-4 flex items-center gap-5 text-xs text-mist-700">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-wood-900/35" aria-hidden="true" />
-          Sélection
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-[#2a2022]" aria-hidden="true" />
-          Indisponible
-        </span>
+      <div className="mt-[14px] mb-5 flex items-center gap-2 text-xs text-mist-700">
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-wood-900/35" aria-hidden="true" />
+        <span>Sélection</span>
+        <span className="ml-2.5 h-2.5 w-2.5 rounded-[2px] bg-[#2a2022]" aria-hidden="true" />
+        <span>Indisponible</span>
       </div>
 
-      <div className="mt-4 min-h-10">
+      <div className="min-h-10">
         {error && <p className="text-sm text-red-400">{error}</p>}
         {!error && !selectionStart && (
           <p className="text-sm text-mist-600">

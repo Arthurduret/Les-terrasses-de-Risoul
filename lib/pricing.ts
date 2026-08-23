@@ -93,6 +93,22 @@ export function calculateGrandTotal(
   };
 }
 
+// Tarif de la semaine à venir la plus proche (aujourd'hui compris) parmi
+// celles ayant un tarif assigné — utilisé pour afficher un prix de départ
+// réel avant toute sélection de dates, plutôt qu'un prix statique
+// déconnecté du calendrier.
+export function getUpcomingRule(
+  pricingRules: PricingRule[],
+  weekAssignments: WeekAssignments,
+  todayISO: string
+): PricingRule | null {
+  const nextWeekIso = Object.keys(weekAssignments)
+    .filter((iso) => iso >= todayISO)
+    .sort()[0];
+  if (!nextWeekIso) return null;
+  return pricingRules.find((rule) => rule.id === weekAssignments[nextWeekIso]) ?? null;
+}
+
 // Le tarif d'un séjour est entièrement déterminé par le tarif assigné à sa
 // semaine d'arrivée (calendrier de tarifs, un tarif par semaine) — pas de
 // répartition si un séjour de plusieurs semaines traverse des tarifs

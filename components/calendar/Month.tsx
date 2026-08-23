@@ -19,6 +19,7 @@ interface MonthProps {
   onDayClick: (date: Date) => void;
   onDayHover: (date: Date | null) => void;
   size?: CalendarSize;
+  showLabel?: boolean;
 }
 
 export function Month({
@@ -31,6 +32,7 @@ export function Month({
   onDayClick,
   onDayHover,
   size = "default",
+  showLabel = true,
 }: MonthProps) {
   const weeks = getMonthMatrix(monthDate);
   const rangeEnd = selectionEnd ?? previewEnd;
@@ -38,16 +40,20 @@ export function Month({
 
   return (
     <div>
-      <p
-        className={`mb-4 text-center font-display capitalize tracking-wide text-foreground ${
-          large ? "text-lg" : "text-base"
-        }`}
-      >
-        {formatMonthLabel(monthDate)}
-      </p>
-      <div className="mb-1 grid grid-cols-7 text-center text-[11px] tracking-wide text-mist-800">
+      {showLabel && (
+        <p
+          className={`mb-4 text-center font-display capitalize tracking-wide text-foreground ${
+            large ? "text-lg" : "text-base"
+          }`}
+        >
+          {formatMonthLabel(monthDate)}
+        </p>
+      )}
+      <div className="mb-1 grid grid-cols-7 text-center text-[11px] text-mist-800">
         {WEEKDAY_LABELS.map((label, i) => (
-          <span key={i}>{label}</span>
+          <span key={i} className="flex h-[26px] items-center justify-center">
+            {label}
+          </span>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-0.5">
@@ -126,18 +132,18 @@ function dayButtonClasses({
     : "h-10 rounded-[9px] text-sm transition-colors";
 
   if (unavailable) {
-    return `${base} bg-[#1b1517] text-mist-800 line-through decoration-ember-600/80 cursor-not-allowed`;
+    return `${base} bg-[#1b1517] text-[#54524f] line-through decoration-ember-600/80 cursor-not-allowed`;
   }
   if (dimmed) {
-    return `${base} text-mist-800 cursor-default`;
+    return `${base} text-[#54524f] cursor-default`;
   }
   if (isCap) {
-    return `${base} bg-ember-600 text-white font-semibold cursor-pointer`;
+    return `${base} bg-ember-600 text-[#f6f1ea] font-semibold cursor-pointer`;
   }
   if (inRange) {
     return `${base} bg-wood-900/30 text-foreground cursor-pointer`;
   }
-  return `${base} cursor-pointer text-mist-300 hover:ring-1 hover:ring-foreground/30 ${
+  return `${base} cursor-pointer text-[#cfc7bc] hover:ring-1 hover:ring-foreground/30 ${
     isToday ? "ring-1 ring-wood-500" : ""
   }`;
 }
