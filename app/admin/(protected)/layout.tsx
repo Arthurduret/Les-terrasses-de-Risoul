@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { SignOutButton } from "@/components/admin/SignOutButton";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminLayout({
@@ -22,6 +23,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-full flex-1 bg-background">
+      <AutoRefresh />
       <header className="border-b border-foreground/10 bg-anthracite-800">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-5 py-4">
           <Link href="/admin" className="font-display text-lg text-foreground">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
@@ -25,6 +26,7 @@ export default async function HomePage() {
 
   return (
     <main className="flex-1">
+      <AutoRefresh />
       <section className="relative h-screen min-h-[680px] overflow-hidden border-b border-wood-700">
         <HeroSlideshow />
         <Snowfall />
