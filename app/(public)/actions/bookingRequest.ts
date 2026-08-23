@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { formatISO, isSaturday, parseISODate } from "@/components/calendar/utils";
+import { eachNightInclusive, isSaturday, parseISODate } from "@/components/calendar/utils";
 import { createClient } from "@/lib/supabase/server";
 import { isValidEmail, isValidPhone } from "@/lib/validation";
 
@@ -21,17 +21,6 @@ export interface BookingRequestInput {
   children: number;
   cleaningRequested: boolean;
   message: string;
-}
-
-function eachDateInclusive(start: string, end: string): string[] {
-  const dates: string[] = [];
-  const cursor = parseISODate(start);
-  const last = parseISODate(end);
-  while (cursor.getTime() <= last.getTime()) {
-    dates.push(formatISO(cursor));
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return dates;
 }
 
 // Revalidation serveur des règles déjà appliquées côté calendrier public
@@ -78,7 +67,7 @@ export async function submitBookingRequest(
   }
 
   const supabase = await createClient();
-  const dates = eachDateInclusive(input.startDate, input.endDate);
+  const dates = eachNightInclusive(input.startDate, input.endDate);
 
   const { data: blockedRows, error: availabilityError } = await supabase
     .from("availability_public")

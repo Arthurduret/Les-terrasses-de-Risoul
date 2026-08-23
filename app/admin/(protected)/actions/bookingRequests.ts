@@ -1,24 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { formatISO, parseISODate } from "@/components/calendar/utils";
+import { eachNightInclusive } from "@/components/calendar/utils";
 import { currentAdminLabel } from "@/lib/adminLabel";
 import { createClient } from "@/lib/supabase/server";
-
-// Toutes les dates entre deux jours inclus, au format YYYY-MM-DD — même
-// borne inclusive que la validation du calendrier public
-// (rangeHasBlockedDay), pour que confirmer une demande bloque exactement
-// les dates que le site public considère comme faisant partie du séjour.
-function eachDateInclusive(start: string, end: string): string[] {
-  const dates: string[] = [];
-  const cursor = parseISODate(start);
-  const last = parseISODate(end);
-  while (cursor.getTime() <= last.getTime()) {
-    dates.push(formatISO(cursor));
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return dates;
-}
 
 export async function confirmBookingRequest(
   id: string,
@@ -29,7 +14,7 @@ export async function confirmBookingRequest(
   const supabase = await createClient();
   const adminLabel = await currentAdminLabel(supabase);
 
-  const rows = eachDateInclusive(startDate, endDate).map((date) => ({
+  const rows = eachNightInclusive(startDate, endDate).map((date) => ({
     date,
     status: "booked" as const,
     note: `Réservé par ${guestName}`,

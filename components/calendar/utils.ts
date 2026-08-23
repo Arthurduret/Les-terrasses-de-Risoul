@@ -17,6 +17,23 @@ export function isSaturday(date: Date): boolean {
   return date.getDay() === 6;
 }
 
+// Nuits réellement occupées par un séjour : de l'arrivée à la veille du
+// départ. Le jour de départ n'est PAS une nuit occupée — le check-out se
+// fait le matin (~12h) et un nouveau client peut arriver l'après-midi
+// même jour (~16h) : ce même samedi doit donc rester disponible comme
+// date d'arrivée pour le séjour suivant.
+export function eachNightInclusive(start: string, end: string): string[] {
+  const dates: string[] = [];
+  const cursor = parseISODate(start);
+  const last = parseISODate(end);
+  last.setDate(last.getDate() - 1);
+  while (cursor.getTime() <= last.getTime()) {
+    dates.push(formatISO(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dates;
+}
+
 export function isSameDay(a: Date, b: Date): boolean {
   return (
     a.getFullYear() === b.getFullYear() &&

@@ -205,6 +205,13 @@ export function BookingRequestModal({
                 {formatShortDate(endDate)}
               </span>
             </p>
+            {(settings.checkin_time || settings.checkout_time) && (
+              <p className="mt-1 text-xs text-mist-700">
+                {settings.checkin_time && `Arrivée à partir de ${settings.checkin_time}`}
+                {settings.checkin_time && settings.checkout_time && " · "}
+                {settings.checkout_time && `Départ avant ${settings.checkout_time}`}
+              </p>
+            )}
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

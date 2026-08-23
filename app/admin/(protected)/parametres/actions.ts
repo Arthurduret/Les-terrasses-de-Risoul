@@ -9,6 +9,8 @@ const SETTINGS_KEYS = [
   "min_nights_booking",
   "contact_email",
   "airbnb_link",
+  "checkin_time",
+  "checkout_time",
 ] as const;
 
 export async function updateAdminName(formData: FormData) {

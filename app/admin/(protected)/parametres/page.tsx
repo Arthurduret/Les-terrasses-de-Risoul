@@ -71,6 +71,24 @@ export default async function AdminParametresPage() {
           type="number"
           defaultValue={settings.min_nights_booking}
         />
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <FormField
+            name="checkin_time"
+            label="Heure d'arrivée"
+            placeholder="Ex. 16h00"
+            defaultValue={settings.checkin_time}
+          />
+          <FormField
+            name="checkout_time"
+            label="Heure de départ"
+            placeholder="Ex. 12h00"
+            defaultValue={settings.checkout_time}
+          />
+        </div>
+        <p className="text-xs text-mist-700">
+          Le jour de départ d&apos;un séjour reste disponible comme jour
+          d&apos;arrivée pour le suivant (départ le matin, arrivée l&apos;après-midi).
+        </p>
         <FormField
           name="contact_email"
           label="Email de contact affiché aux visiteurs"
