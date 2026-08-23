@@ -3,21 +3,36 @@
 import { revalidatePath } from "next/cache";
 import { eachNightInclusive } from "@/components/calendar/utils";
 import { currentAdminLabel } from "@/lib/adminLabel";
+import { sendEmail } from "@/lib/email";
+import { bookingConfirmedEmail } from "@/lib/emailTemplates";
+import { calculateGrandTotal } from "@/lib/pricing";
+import { getSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
 
-export async function confirmBookingRequest(
-  id: string,
-  startDate: string,
-  endDate: string,
-  guestName: string
-): Promise<void> {
+export async function confirmBookingRequest(id: string): Promise<void> {
   const supabase = await createClient();
   const adminLabel = await currentAdminLabel(supabase);
 
-  const rows = eachNightInclusive(startDate, endDate).map((date) => ({
+  const { data: request, error: requestFetchError } = await supabase
+    .from("booking_requests")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (requestFetchError || !request) {
+    console.error(
+      "Impossible de charger la demande à confirmer :",
+      requestFetchError?.message
+    );
+    return;
+  }
+
+  const fullName = `${request.first_name} ${request.last_name}`;
+
+  const rows = eachNightInclusive(request.start_date, request.end_date).map((date) => ({
     date,
     status: "booked" as const,
-    note: `Réservé par ${guestName}`,
+    note: `Réservé par ${fullName}`,
     updated_by: adminLabel,
   }));
 
@@ -45,8 +60,62 @@ export async function confirmBookingRequest(
     );
   }
 
+  await sendConfirmationEmail(supabase, request);
+
   revalidatePath("/admin");
   revalidatePath("/");
+}
+
+async function sendConfirmationEmail(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  request: {
+    first_name: string;
+    email: string;
+    start_date: string;
+    end_date: string;
+    adults: number;
+    cleaning_requested: boolean;
+  }
+) {
+  const [{ data: pricingRules }, settings] = await Promise.all([
+    supabase.from("pricing_rules").select("*"),
+    getSettings(supabase),
+  ]);
+
+  const start = new Date(request.start_date);
+  const end = new Date(request.end_date);
+
+  try {
+    const grandTotal = calculateGrandTotal(start, end, pricingRules ?? [], {
+      adults: request.adults,
+      cleaningRequested: request.cleaning_requested,
+      cleaningFee: Number(settings.cleaning_fee ?? 0) || 0,
+      touristTaxPerPersonPerNight: Number(settings.tourist_tax_per_person_per_night ?? 0) || 0,
+    });
+
+    const { subject, html } = bookingConfirmedEmail({
+      firstName: request.first_name,
+      startDate: request.start_date,
+      endDate: request.end_date,
+      nights: grandTotal.breakdown.nights,
+      pricePerNight: grandTotal.breakdown.pricePerNight,
+      cleaningFee: grandTotal.cleaningFee,
+      touristTax: grandTotal.touristTax,
+      grandTotal: grandTotal.grandTotal,
+      checkinTime: settings.checkin_time || undefined,
+      checkoutTime: settings.checkout_time || undefined,
+      contactEmail: settings.contact_email || undefined,
+    });
+
+    await sendEmail({ to: request.email, subject, html });
+  } catch (err) {
+    // Pas de tarif applicable, ou autre — la reservation reste confirmee,
+    // on ne bloque jamais le flux principal pour un email.
+    console.error(
+      "Email de confirmation non envoyé :",
+      err instanceof Error ? err.message : err
+    );
+  }
 }
 
 export async function declineBookingRequest(id: string): Promise<void> {

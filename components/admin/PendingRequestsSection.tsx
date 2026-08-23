@@ -69,13 +69,7 @@ export function PendingRequestsSection({
 
             <div className="mt-5 flex flex-wrap gap-3">
               <ConfirmSubmitButton
-                action={confirmBookingRequest.bind(
-                  null,
-                  request.id,
-                  request.start_date,
-                  request.end_date,
-                  fullName
-                )}
+                action={confirmBookingRequest.bind(null, request.id)}
                 confirmMessage={`Confirmer la demande de ${fullName} du ${formatShortDate(
                   parseISODate(request.start_date)
                 )} au ${formatShortDate(

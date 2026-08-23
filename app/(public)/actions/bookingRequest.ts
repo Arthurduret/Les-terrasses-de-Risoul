@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { eachNightInclusive, isSaturday, parseISODate } from "@/components/calendar/utils";
+import { sendEmail } from "@/lib/email";
+import { bookingRequestReceivedEmail } from "@/lib/emailTemplates";
 import { createClient } from "@/lib/supabase/server";
 import { isValidEmail, isValidPhone } from "@/lib/validation";
 
@@ -103,6 +105,13 @@ export async function submitBookingRequest(
   if (error) {
     return { error: "Impossible d'envoyer la demande, réessayez." };
   }
+
+  const { subject, html } = bookingRequestReceivedEmail({
+    firstName: input.firstName.trim(),
+    startDate: input.startDate,
+    endDate: input.endDate,
+  });
+  await sendEmail({ to: input.email.trim(), subject, html });
 
   revalidatePath("/admin");
   return { error: null };
