@@ -6,6 +6,11 @@ export interface LocalBusiness {
   // Réservé pour mettre en avant des commerces partenaires plus tard
   // (mise en forme spéciale, tri en tête de liste, etc.) — false par défaut.
   featured: boolean;
+  // Couleur de la silhouette sur la carte "télésiège" (test sur quelques
+  // commerces avant généralisation) — sa seule présence bascule la carte
+  // vers ce variant animé. Couleur réelle de l'enseigne, jamais inventée ;
+  // à défaut d'accord/info sur les couleurs, laisser le champ absent.
+  accentColor?: string;
 }
 
 export const LOCAL_BUSINESSES: LocalBusiness[] = [
@@ -48,6 +53,9 @@ export const LOCAL_BUSINESSES: LocalBusiness[] = [
     description:
       "Cuisine savoyarde généreuse et carte du jour, à réserver le week-end.",
     featured: false,
+    // TODO couleur temporaire (or du site) en attendant la couleur réelle
+    // de l'enseigne — remplacer avant généralisation.
+    accentColor: "#e0b489",
   },
   {
     id: "lecureuil",
@@ -56,6 +64,7 @@ export const LOCAL_BUSINESSES: LocalBusiness[] = [
     description:
       "Déjeuner en terrasse sur les pistes, face au massif de la Forêt Blanche.",
     featured: false,
+    accentColor: "#e0b489",
   },
   {
     id: "cine-foret-blanche",
@@ -80,6 +89,7 @@ export const LOCAL_BUSINESSES: LocalBusiness[] = [
     description:
       "Un vol au-dessus de la station, l'une des plus longues des Alpes du Sud.",
     featured: false,
+    accentColor: "#e0b489",
   },
   {
     id: "esf-risoul",
@@ -88,6 +98,7 @@ export const LOCAL_BUSINESSES: LocalBusiness[] = [
     description:
       "Cours collectifs et particuliers, du Club Piou-Piou au hors-piste encadré.",
     featured: false,
+    accentColor: "#e0b489",
   },
 ];
 
