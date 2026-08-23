@@ -17,6 +17,16 @@ export function isSaturday(date: Date): boolean {
   return date.getDay() === 6;
 }
 
+// Samedi qui débute la semaine contenant `date` (le jour lui-même si
+// c'est déjà un samedi) — unité de base du calendrier de tarifs.
+export function startOfWeekSaturday(date: Date): Date {
+  const day = date.getDay(); // 0 = dimanche ... 6 = samedi
+  const daysSinceSaturday = (day + 1) % 7;
+  const result = startOfDay(date);
+  result.setDate(result.getDate() - daysSinceSaturday);
+  return result;
+}
+
 // Nuits réellement occupées par un séjour : de l'arrivée à la veille du
 // départ. Le jour de départ n'est PAS une nuit occupée — le check-out se
 // fait le matin (~12h) et un nouveau client peut arriver l'après-midi

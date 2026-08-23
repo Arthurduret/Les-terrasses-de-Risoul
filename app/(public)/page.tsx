@@ -14,14 +14,16 @@ import { ChairliftDivider } from "@/components/decor/ChairliftDivider";
 import { SkiTraceDivider } from "@/components/decor/SkiTraceDivider";
 import { getBlockedDates } from "@/lib/availability";
 import { getSettings } from "@/lib/settings";
+import { getWeekAssignments } from "@/lib/pricingWeeks";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [blockedDates, settings, { data: pricingRules }] = await Promise.all([
+  const [blockedDates, settings, { data: pricingRules }, weekAssignments] = await Promise.all([
     getBlockedDates(supabase),
     getSettings(supabase),
     supabase.from("pricing_rules").select("*"),
+    getWeekAssignments(supabase),
   ]);
 
   return (
@@ -100,6 +102,7 @@ export default async function HomePage() {
               <BookingWidget
                 blockedDates={blockedDates}
                 pricingRules={pricingRules ?? []}
+                weekAssignments={weekAssignments}
                 settings={settings}
               />
             </div>

@@ -123,33 +123,56 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_rule_weeks: {
+        Row: {
+          id: string
+          rule_id: string
+          week_start: string
+        }
+        Insert: {
+          id?: string
+          rule_id: string
+          week_start: string
+        }
+        Update: {
+          id?: string
+          rule_id?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_rule_weeks_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_rules: {
         Row: {
+          color: string | null
           discount_percent: number | null
           id: string
           label: string
           min_nights: number | null
           price_per_night: number
-          season_end: string | null
-          season_start: string | null
         }
         Insert: {
+          color?: string | null
           discount_percent?: number | null
           id?: string
           label: string
           min_nights?: number | null
           price_per_night: number
-          season_end?: string | null
-          season_start?: string | null
         }
         Update: {
+          color?: string | null
           discount_percent?: number | null
           id?: string
           label?: string
           min_nights?: number | null
           price_per_night?: number
-          season_end?: string | null
-          season_start?: string | null
         }
         Relationships: []
       }

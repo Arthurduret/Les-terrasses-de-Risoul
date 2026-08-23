@@ -1,8 +1,9 @@
 import { FormField } from "./FormField";
-import { PricingDateRangePicker } from "./PricingDateRangePicker";
 import type { Database } from "@/lib/supabase/database.types";
 
 type PricingRule = Database["public"]["Tables"]["pricing_rules"]["Row"];
+
+const DEFAULT_COLOR = "#c79267";
 
 export function PricingRuleFields({
   defaultValues,
@@ -19,6 +20,15 @@ export function PricingRuleFields({
           defaultValue={defaultValues?.label}
           required
         />
+        <label className="block">
+          <span className="block text-sm text-mist-400">Couleur</span>
+          <input
+            type="color"
+            name="color"
+            defaultValue={defaultValues?.color ?? DEFAULT_COLOR}
+            className="mt-1.5 h-[42px] w-full cursor-pointer border border-foreground/15 bg-background"
+          />
+        </label>
         <FormField
           name="price_per_week"
           label="Prix par semaine (€)"
@@ -33,7 +43,7 @@ export function PricingRuleFields({
         />
         <FormField
           name="min_weeks"
-          label="S'applique à partir de (nombre de semaines, optionnel)"
+          label="Réduction à partir de (nombre de semaines, optionnel)"
           type="number"
           defaultValue={
             defaultValues?.min_nights ? defaultValues.min_nights / 7 : ""
@@ -47,20 +57,10 @@ export function PricingRuleFields({
           defaultValue={defaultValues?.discount_percent ?? ""}
         />
       </div>
-
-      <div>
-        <span className="mb-2 block text-sm text-mist-400">
-          Période d&apos;application (optionnel — cliquez une date de début
-          puis une date de fin ; laissez vide pour un tarif valable toute
-          l&apos;année)
-        </span>
-        <div className="border border-foreground/10 bg-background p-4">
-          <PricingDateRangePicker
-            defaultStart={defaultValues?.season_start}
-            defaultEnd={defaultValues?.season_end}
-          />
-        </div>
-      </div>
+      <p className="text-xs text-mist-700">
+        Les semaines où ce tarif s&apos;applique se choisissent dans le
+        calendrier de tarifs, plus bas.
+      </p>
     </div>
   );
 }

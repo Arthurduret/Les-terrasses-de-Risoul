@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { AvailabilityCalendar } from "@/components/calendar/AvailabilityCalendar";
 import { BookingRequestModal } from "./BookingRequestModal";
-import { calculateTotalPrice, type PriceBreakdown } from "@/lib/pricing";
+import { calculateTotalPrice, type PriceBreakdown, type WeekAssignments } from "@/lib/pricing";
 import type { Database } from "@/lib/supabase/database.types";
 
 type PricingRule = Database["public"]["Tables"]["pricing_rules"]["Row"];
@@ -12,6 +12,7 @@ type PricingRule = Database["public"]["Tables"]["pricing_rules"]["Row"];
 interface BookingWidgetProps {
   blockedDates: string[];
   pricingRules: PricingRule[];
+  weekAssignments: WeekAssignments;
   settings: Record<string, string>;
 }
 
@@ -26,6 +27,7 @@ function eur(amount: number): string {
 export function BookingWidget({
   blockedDates,
   pricingRules,
+  weekAssignments,
   settings,
 }: BookingWidgetProps) {
   const [range, setRange] = useState<{ start: Date | null; end: Date | null }>(
@@ -38,7 +40,7 @@ export function BookingWidget({
 
   if (range.start && range.end) {
     try {
-      breakdown = calculateTotalPrice(range.start, range.end, pricingRules);
+      breakdown = calculateTotalPrice(range.start, range.end, pricingRules, weekAssignments);
     } catch (err) {
       priceError =
         err instanceof Error ? err.message : "Tarif indisponible pour ces dates.";
@@ -105,6 +107,7 @@ export function BookingWidget({
         startDate={requestOpen ? range.start : null}
         endDate={requestOpen ? range.end : null}
         pricingRules={pricingRules}
+        weekAssignments={weekAssignments}
         settings={settings}
         onClose={() => setRequestOpen(false)}
       />

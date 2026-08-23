@@ -1,6 +1,12 @@
+import { formatISO } from "@/components/calendar/utils";
 import type { Database } from "./supabase/database.types";
 
 type PricingRule = Database["public"]["Tables"]["pricing_rules"]["Row"];
+
+// Date de début de semaine (YYYY-MM-DD) -> id du tarif assigné à cette
+// semaine (table pricing_rule_weeks). Une semaine sans entrée n'a pas
+// de tarif — voir le calendrier de tarifs dans la console admin.
+export type WeekAssignments = Record<string, string>;
 
 export interface PriceBreakdown {
   nights: number;
@@ -16,7 +22,8 @@ export interface PriceBreakdown {
 export function calculateTotalPrice(
   startDate: Date,
   endDate: Date,
-  pricingRules: PricingRule[]
+  pricingRules: PricingRule[],
+  weekAssignments: WeekAssignments
 ): PriceBreakdown {
   const nights = Math.round(
     (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -26,14 +33,18 @@ export function calculateTotalPrice(
     throw new Error("La date de fin doit être postérieure à la date de début.");
   }
 
-  const applicableRule = selectPricingRule(startDate, nights, pricingRules);
+  const applicableRule = selectPricingRule(startDate, pricingRules, weekAssignments);
 
   if (!applicableRule) {
-    throw new Error("Aucun tarif applicable trouvé pour ces dates.");
+    throw new Error("Aucun tarif défini pour cette semaine d'arrivée.");
   }
 
   const subtotal = nights * applicableRule.price_per_night;
-  const discountPercent = applicableRule.discount_percent ?? 0;
+  // La réduction dégressive du tarif assigné à la semaine ne s'applique que
+  // si le séjour atteint son propre seuil (min_nights) — sinon on garde le
+  // prix de base de ce même tarif, plutôt que d'échouer faute de règle.
+  const discountPercent =
+    nights >= (applicableRule.min_nights ?? 0) ? applicableRule.discount_percent ?? 0 : 0;
   const total = subtotal * (1 - discountPercent / 100);
 
   return {
@@ -61,6 +72,7 @@ export function calculateGrandTotal(
   startDate: Date,
   endDate: Date,
   pricingRules: PricingRule[],
+  weekAssignments: WeekAssignments,
   options: {
     adults: number;
     cleaningRequested: boolean;
@@ -68,7 +80,7 @@ export function calculateGrandTotal(
     touristTaxPerPersonPerNight: number;
   }
 ): GrandTotal {
-  const breakdown = calculateTotalPrice(startDate, endDate, pricingRules);
+  const breakdown = calculateTotalPrice(startDate, endDate, pricingRules, weekAssignments);
   const cleaningFee = options.cleaningRequested ? options.cleaningFee : 0;
   const touristTax =
     breakdown.nights * options.adults * options.touristTaxPerPersonPerNight;
@@ -81,31 +93,16 @@ export function calculateGrandTotal(
   };
 }
 
-// Sélectionne la règle de tarification applicable :
-// - filtre sur la saison si season_start/season_end sont définis
-// - la réduction dégressive s'applique au nombre de nuits total du séjour
-// - on prend la règle avec le min_nights le plus élevé encore atteint
+// Le tarif d'un séjour est entièrement déterminé par le tarif assigné à sa
+// semaine d'arrivée (calendrier de tarifs, un tarif par semaine) — pas de
+// répartition si un séjour de plusieurs semaines traverse des tarifs
+// différents, la semaine d'arrivée fixe le prix par nuit pour tout le séjour.
 function selectPricingRule(
   startDate: Date,
-  nights: number,
-  pricingRules: PricingRule[]
+  pricingRules: PricingRule[],
+  weekAssignments: WeekAssignments
 ): PricingRule | undefined {
-  const seasonalRules = pricingRules.filter((rule) =>
-    isWithinSeason(startDate, rule)
-  );
-
-  const candidates = seasonalRules.length > 0 ? seasonalRules : pricingRules;
-
-  return [...candidates]
-    .sort((a, b) => (b.min_nights ?? 0) - (a.min_nights ?? 0))
-    .find((rule) => nights >= (rule.min_nights ?? 0));
-}
-
-function isWithinSeason(date: Date, rule: PricingRule): boolean {
-  if (!rule.season_start || !rule.season_end) return true;
-
-  const seasonStart = new Date(rule.season_start);
-  const seasonEnd = new Date(rule.season_end);
-
-  return date >= seasonStart && date <= seasonEnd;
+  const ruleId = weekAssignments[formatISO(startDate)];
+  if (!ruleId) return undefined;
+  return pricingRules.find((rule) => rule.id === ruleId);
 }

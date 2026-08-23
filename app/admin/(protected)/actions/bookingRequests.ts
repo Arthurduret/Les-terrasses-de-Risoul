@@ -7,6 +7,7 @@ import { sendEmail } from "@/lib/email";
 import { bookingConfirmedEmail } from "@/lib/emailTemplates";
 import { calculateGrandTotal } from "@/lib/pricing";
 import { getSettings } from "@/lib/settings";
+import { getWeekAssignments } from "@/lib/pricingWeeks";
 import { createClient } from "@/lib/supabase/server";
 
 export async function confirmBookingRequest(id: string): Promise<void> {
@@ -77,9 +78,10 @@ async function sendConfirmationEmail(
     cleaning_requested: boolean;
   }
 ) {
-  const [{ data: pricingRules }, settings] = await Promise.all([
+  const [{ data: pricingRules }, settings, weekAssignments] = await Promise.all([
     supabase.from("pricing_rules").select("*"),
     getSettings(supabase),
+    getWeekAssignments(supabase),
   ]);
 
   const start = parseISODate(request.start_date);
@@ -87,7 +89,7 @@ async function sendConfirmationEmail(
 
   let pricing = null;
   try {
-    const grandTotal = calculateGrandTotal(start, end, pricingRules ?? [], {
+    const grandTotal = calculateGrandTotal(start, end, pricingRules ?? [], weekAssignments, {
       adults: request.adults,
       cleaningRequested: request.cleaning_requested,
       cleaningFee: Number(settings.cleaning_fee ?? 0) || 0,

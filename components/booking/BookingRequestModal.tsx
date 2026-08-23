@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { submitBookingRequest } from "@/app/(public)/actions/bookingRequest";
 import { Button } from "@/components/ui/Button";
 import { formatISO, formatShortDate } from "@/components/calendar/utils";
-import { calculateGrandTotal } from "@/lib/pricing";
+import { calculateGrandTotal, type WeekAssignments } from "@/lib/pricing";
 import { isValidEmail, isValidPhone } from "@/lib/validation";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { Database } from "@/lib/supabase/database.types";
@@ -18,6 +18,7 @@ interface BookingRequestModalProps {
   startDate: Date | null;
   endDate: Date | null;
   pricingRules: PricingRule[];
+  weekAssignments: WeekAssignments;
   settings: Record<string, string>;
   onClose: () => void;
 }
@@ -74,6 +75,7 @@ export function BookingRequestModal({
   startDate,
   endDate,
   pricingRules,
+  weekAssignments,
   settings,
   onClose,
 }: BookingRequestModalProps) {
@@ -118,7 +120,7 @@ export function BookingRequestModal({
   let grandTotal: ReturnType<typeof calculateGrandTotal> | null = null;
   let priceError: string | null = null;
   try {
-    grandTotal = calculateGrandTotal(startDate, endDate, pricingRules, {
+    grandTotal = calculateGrandTotal(startDate, endDate, pricingRules, weekAssignments, {
       adults,
       cleaningRequested,
       cleaningFee,

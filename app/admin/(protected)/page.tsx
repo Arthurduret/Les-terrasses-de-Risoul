@@ -1,8 +1,10 @@
 import { AvailabilityEditor } from "@/components/admin/AvailabilityEditor";
 import { BookingHistoryTable } from "@/components/admin/BookingHistoryTable";
 import { PendingRequestsSection } from "@/components/admin/PendingRequestsSection";
+import { PricingCalendar } from "@/components/admin/PricingCalendar";
 import { PricingRulesSection } from "@/components/admin/PricingRulesSection";
 import { currentAdminLabel } from "@/lib/adminLabel";
+import { getWeekAssignments } from "@/lib/pricingWeeks";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminHomePage() {
@@ -13,6 +15,7 @@ export default async function AdminHomePage() {
     { data: availabilityRows },
     { data: pricingRules },
     { data: bookingRequestsData },
+    weekAssignments,
   ] = await Promise.all([
     supabase
       .from("availability")
@@ -26,6 +29,7 @@ export default async function AdminHomePage() {
       .from("booking_requests")
       .select("*")
       .order("created_at", { ascending: false }),
+    getWeekAssignments(supabase),
   ]);
 
   const bookingRequests = bookingRequestsData ?? [];
@@ -76,7 +80,18 @@ export default async function AdminHomePage() {
           Le site affiche automatiquement le tarif le plus bas parmi ceux
           renseignés ici.
         </p>
-        <div className="mt-6">
+
+        <h3 className="mt-8 font-display text-lg text-foreground">
+          Calendrier des tarifs
+        </h3>
+        <div className="mt-4 border border-foreground/10 bg-anthracite-800 p-6">
+          <PricingCalendar rules={pricingRules ?? []} initialAssignments={weekAssignments} />
+        </div>
+
+        <h3 className="mt-10 font-display text-lg text-foreground">
+          Liste des tarifs
+        </h3>
+        <div className="mt-4">
           <PricingRulesSection rules={pricingRules ?? []} />
         </div>
       </section>
