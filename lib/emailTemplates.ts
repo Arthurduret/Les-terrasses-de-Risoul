@@ -105,7 +105,7 @@ export function bookingConfirmedEmail(params: {
         pricing
           ? `<table style="width:100%;border-collapse:collapse;margin-top:16px;border-top:1px solid rgba(237,231,223,0.1);padding-top:8px;">
               ${lineRow(
-                `${eur(pricing.pricePerNight)} × ${pricing.nights} nuit${pricing.nights > 1 ? "s" : ""}`,
+                `${eur(pricing.pricePerNight * 7)} / semaine × ${pricing.nights / 7} semaine${pricing.nights / 7 > 1 ? "s" : ""}`,
                 pricing.pricePerNight * pricing.nights
               )}
               ${pricing.cleaningFee > 0 ? lineRow("Ménage", pricing.cleaningFee) : ""}

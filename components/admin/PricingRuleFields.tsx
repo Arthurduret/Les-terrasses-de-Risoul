@@ -20,18 +20,24 @@ export function PricingRuleFields({
           required
         />
         <FormField
-          name="price_per_night"
-          label="Prix par nuit (€)"
+          name="price_per_week"
+          label="Prix par semaine (€)"
           type="number"
           step="0.01"
-          defaultValue={defaultValues?.price_per_night}
+          defaultValue={
+            defaultValues
+              ? Math.round(defaultValues.price_per_night * 7 * 100) / 100
+              : undefined
+          }
           required
         />
         <FormField
-          name="min_nights"
-          label="S'applique à partir de (nombre de nuits, optionnel)"
+          name="min_weeks"
+          label="S'applique à partir de (nombre de semaines, optionnel)"
           type="number"
-          defaultValue={defaultValues?.min_nights ?? ""}
+          defaultValue={
+            defaultValues?.min_nights ? defaultValues.min_nights / 7 : ""
+          }
         />
         <FormField
           name="discount_percent"

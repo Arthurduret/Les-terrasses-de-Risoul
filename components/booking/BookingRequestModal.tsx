@@ -355,8 +355,9 @@ export function BookingRequestModal({
                   <div className="space-y-2 border-t border-foreground/10 pt-5 text-sm text-mist-500">
                     <div className="flex justify-between gap-3">
                       <span>
-                        {eur(grandTotal.breakdown.pricePerNight)} ×{" "}
-                        {grandTotal.breakdown.nights} nuits
+                        {eur(grandTotal.breakdown.pricePerNight * 7)} / semaine ×{" "}
+                        {grandTotal.breakdown.nights / 7} semaine
+                        {grandTotal.breakdown.nights / 7 > 1 ? "s" : ""}
                       </span>
                       <span className="text-foreground">{eur(grandTotal.breakdown.total)}</span>
                     </div>

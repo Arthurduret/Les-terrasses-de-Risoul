@@ -47,7 +47,7 @@ export function BookingWidget({
 
   const fromPrice =
     pricingRules.length > 0
-      ? Math.min(...pricingRules.map((rule) => rule.price_per_night))
+      ? Math.min(...pricingRules.map((rule) => rule.price_per_night)) * 7
       : null;
 
   return (
@@ -58,7 +58,7 @@ export function BookingWidget({
             <span className="font-display text-3xl text-foreground">
               {eur(fromPrice)}
             </span>
-            <span className="text-sm text-mist-600"> / nuit</span>
+            <span className="text-sm text-mist-600"> / semaine</span>
           </>
         ) : (
           <span className="text-sm text-mist-600">Tarifs à venir</span>
