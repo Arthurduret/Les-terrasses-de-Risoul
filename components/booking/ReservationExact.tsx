@@ -112,7 +112,8 @@ export function ReservationExact({
   const [selectionStart, setSelectionStart] = useState<Date | null>(null);
   const [selectionEnd, setSelectionEnd] = useState<Date | null>(null);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
-  const [guests, setGuests] = useState(2);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
   const [requestOpen, setRequestOpen] = useState(false);
 
   const canGoPrev = visibleMonth.getTime() > firstMonth.getTime();
@@ -159,7 +160,7 @@ export function ReservationExact({
   if (selectionStart && selectionEnd) {
     try {
       grandTotal = calculateGrandTotal(selectionStart, selectionEnd, pricingRules, weekAssignments, {
-        adults: guests,
+        adults,
         cleaningRequested: true,
         cleaningFee: Number(settings.cleaning_fee ?? 0) || 0,
         touristTaxPerPersonPerNight: Number(settings.tourist_tax_per_person_per_night ?? 0) || 0,
@@ -293,32 +294,62 @@ export function ReservationExact({
               <i style={{ background: "#2A2022", marginLeft: 10 }} /> Indisponible
             </div>
 
-            <div className="ltr-row">
-              <div>
-                <div className="ltr-lab">Voyageurs</div>
-                <div style={{ fontSize: 16, marginTop: 3 }}>
-                  {guests} voyageur{guests > 1 ? "s" : ""}
+            <div className="ltr-row" style={{ flexDirection: "column", alignItems: "stretch", gap: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div className="ltr-lab">Adultes</div>
+                  <div style={{ fontSize: 16, marginTop: 3 }}>
+                    {adults} adulte{adults > 1 ? "s" : ""}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    className="ltr-round"
+                    aria-label="Retirer un adulte"
+                    disabled={adults <= 1}
+                    onClick={() => setAdults((a) => Math.max(1, a - 1))}
+                  >
+                    –
+                  </button>
+                  <button
+                    type="button"
+                    className="ltr-round"
+                    aria-label="Ajouter un adulte"
+                    disabled={adults + children >= MAX_GUESTS}
+                    onClick={() => setAdults((a) => Math.min(MAX_GUESTS - children, a + 1))}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  type="button"
-                  className="ltr-round"
-                  aria-label="Retirer un voyageur"
-                  disabled={guests <= 1}
-                  onClick={() => setGuests((g) => Math.max(1, g - 1))}
-                >
-                  –
-                </button>
-                <button
-                  type="button"
-                  className="ltr-round"
-                  aria-label="Ajouter un voyageur"
-                  disabled={guests >= MAX_GUESTS}
-                  onClick={() => setGuests((g) => Math.min(MAX_GUESTS, g + 1))}
-                >
-                  +
-                </button>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div className="ltr-lab">Enfants</div>
+                  <div style={{ fontSize: 16, marginTop: 3 }}>
+                    {children} enfant{children > 1 ? "s" : ""}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    className="ltr-round"
+                    aria-label="Retirer un enfant"
+                    disabled={children <= 0}
+                    onClick={() => setChildren((c) => Math.max(0, c - 1))}
+                  >
+                    –
+                  </button>
+                  <button
+                    type="button"
+                    className="ltr-round"
+                    aria-label="Ajouter un enfant"
+                    disabled={adults + children >= MAX_GUESTS}
+                    onClick={() => setChildren((c) => Math.min(MAX_GUESTS - adults, c + 1))}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -333,6 +364,18 @@ export function ReservationExact({
                 </span>
                 <b>{nights ? `${nights} nuit${nights > 1 ? "s" : ""}` : "—"}</b>
               </div>
+              {grandTotal && grandTotal.cleaningFee > 0 && (
+                <div>
+                  <span>Ménage de fin de séjour</span>
+                  <b>{eur(grandTotal.cleaningFee)}</b>
+                </div>
+              )}
+              {grandTotal && grandTotal.touristTax > 0 && (
+                <div>
+                  <span>Taxe de séjour</span>
+                  <b>{eur(grandTotal.touristTax)}</b>
+                </div>
+              )}
               {priceError && !grandTotal && (
                 <div>
                   <span>{priceError}</span>
@@ -346,18 +389,6 @@ export function ReservationExact({
                     {weeks > 1 ? "s" : ""}
                   </span>
                   <b>{eur(grandTotal.breakdown.total)}</b>
-                </div>
-              )}
-              {grandTotal && grandTotal.cleaningFee > 0 && (
-                <div>
-                  <span>Ménage de fin de séjour</span>
-                  <b>{eur(grandTotal.cleaningFee)}</b>
-                </div>
-              )}
-              {grandTotal && grandTotal.touristTax > 0 && (
-                <div>
-                  <span>Taxe de séjour</span>
-                  <b>{eur(grandTotal.touristTax)}</b>
                 </div>
               )}
             </div>
@@ -386,7 +417,8 @@ export function ReservationExact({
         pricingRules={pricingRules}
         weekAssignments={weekAssignments}
         settings={settings}
-        defaultAdults={guests}
+        defaultAdults={adults}
+        defaultChildren={children}
         onClose={() => setRequestOpen(false)}
       />
     </section>

@@ -21,6 +21,7 @@ interface BookingRequestModalProps {
   weekAssignments: WeekAssignments;
   settings: Record<string, string>;
   defaultAdults?: number;
+  defaultChildren?: number;
   onClose: () => void;
 }
 
@@ -79,6 +80,7 @@ export function BookingRequestModal({
   weekAssignments,
   settings,
   defaultAdults,
+  defaultChildren,
   onClose,
 }: BookingRequestModalProps) {
   const [mounted, setMounted] = useState(false);
@@ -99,12 +101,15 @@ export function BookingRequestModal({
 
   useEffect(() => setMounted(true), []);
 
-  // Pré-remplit le nombre d'adultes avec le compteur "voyageurs" du widget
-  // à chaque ouverture — le détail adultes/enfants (nécessaire pour la
-  // taxe de séjour, exonérée pour les mineurs) reste à préciser ici.
+  // Pré-remplit adultes/enfants avec le compteur du widget à chaque
+  // ouverture — reste modifiable ici avant l'envoi de la demande.
   useEffect(() => {
-    if (!startDate || !defaultAdults) return;
-    setAdults(Math.min(MAX_OCCUPANTS, Math.max(1, defaultAdults)));
+    if (!startDate) return;
+    if (defaultChildren === undefined && defaultAdults === undefined) return;
+    const nextChildren = Math.min(MAX_OCCUPANTS - 1, Math.max(0, defaultChildren ?? 0));
+    const nextAdults = Math.min(MAX_OCCUPANTS - nextChildren, Math.max(1, defaultAdults ?? 1));
+    setChildren(nextChildren);
+    setAdults(nextAdults);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate]);
 
