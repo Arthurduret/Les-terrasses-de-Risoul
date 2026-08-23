@@ -127,7 +127,7 @@ export function AvailabilityCalendar({
   };
 
   const navButtonClasses = (enabled: boolean) =>
-    `flex h-8 w-8 items-center justify-center rounded-[3px] border text-mist-300 text-base leading-none transition-colors ${
+    `flex h-8 w-8 items-center justify-center rounded-[2px] border text-mist-300 text-base leading-none transition-colors ${
       enabled
         ? "border-foreground/18 hover:border-wood-500 hover:text-foreground"
         : "cursor-not-allowed border-foreground/10 opacity-30"
@@ -169,13 +169,13 @@ export function AvailabilityCalendar({
         )}
       </div>
 
-      <div className="mt-4 flex items-center gap-5 text-xs text-mist-600">
+      <div className="mt-4 flex items-center gap-5 text-xs text-mist-700">
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-[3px] bg-ember-600" aria-hidden="true" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-wood-900/35" aria-hidden="true" />
           Sélection
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-[3px] bg-mist-800/50" aria-hidden="true" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-[#2a2022]" aria-hidden="true" />
           Indisponible
         </span>
       </div>

@@ -126,7 +126,7 @@ function dayButtonClasses({
     : "h-10 rounded-[9px] text-sm transition-colors";
 
   if (unavailable) {
-    return `${base} text-mist-800 line-through decoration-ember-600/70 cursor-not-allowed`;
+    return `${base} bg-[#1b1517] text-mist-800 line-through decoration-ember-600/80 cursor-not-allowed`;
   }
   if (dimmed) {
     return `${base} text-mist-800 cursor-default`;
