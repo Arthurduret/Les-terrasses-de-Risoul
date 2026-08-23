@@ -47,26 +47,8 @@ export function BookingWidget({
     }
   }
 
-  const fromPrice =
-    pricingRules.length > 0
-      ? Math.min(...pricingRules.map((rule) => rule.price_per_night)) * 7
-      : null;
-
   return (
     <div className="border border-foreground/10 bg-anthracite-800 p-7">
-      <div className="mb-6">
-        {fromPrice !== null ? (
-          <>
-            <span className="font-display text-3xl text-foreground">
-              {eur(fromPrice)}
-            </span>
-            <span className="text-sm text-mist-600"> / semaine</span>
-          </>
-        ) : (
-          <span className="text-sm text-mist-600">Tarifs à venir</span>
-        )}
-      </div>
-
       <AvailabilityCalendar
         blockedDates={blockedDates}
         months={1}
