@@ -13,7 +13,7 @@ export async function getBlockedDates(
   ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   const { data, error } = await supabase
-    .from("availability")
+    .from("availability_public")
     .select("date")
     .gte("date", todayIso)
     .order("date", { ascending: true });
@@ -26,5 +26,10 @@ export async function getBlockedDates(
     return [];
   }
 
-  return data.map((row) => row.date);
+  // La vue availability_public ne déclare pas `date` comme non-nullable
+  // (limite de l'inférence de type sur les vues), même si la colonne
+  // d'origine l'est bien (contrainte not null sur availability.date).
+  return data
+    .map((row) => row.date)
+    .filter((date): date is string => date !== null);
 }

@@ -11,6 +11,7 @@ interface BookingRequestRow {
   start_date: string;
   end_date: string;
   status: string;
+  processed_by: string | null;
 }
 
 type FilterKey = "all" | "upcoming" | "past" | "pending" | "confirmed" | "declined";
@@ -90,7 +91,8 @@ export function BookingHistoryTable({
                 <th className="pb-2 pr-4 font-normal">Voyageur</th>
                 <th className="pb-2 pr-4 font-normal">Contact</th>
                 <th className="pb-2 pr-4 font-normal">Dates</th>
-                <th className="pb-2 font-normal">Statut</th>
+                <th className="pb-2 pr-4 font-normal">Statut</th>
+                <th className="pb-2 font-normal">Traité par</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/10">
@@ -104,10 +106,13 @@ export function BookingHistoryTable({
                     {formatShortDate(parseISODate(r.start_date))} →{" "}
                     {formatShortDate(parseISODate(r.end_date))}
                   </td>
-                  <td className="py-3">
+                  <td className="py-3 pr-4">
                     <span className={statusColor(r.status)}>
                       {STATUS_LABELS[r.status] ?? r.status}
                     </span>
+                  </td>
+                  <td className="py-3 whitespace-nowrap text-mist-600">
+                    {r.processed_by ?? "—"}
                   </td>
                 </tr>
               ))}

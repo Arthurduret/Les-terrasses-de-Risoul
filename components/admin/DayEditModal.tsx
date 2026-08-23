@@ -8,6 +8,7 @@ import { formatLongDate } from "@/components/calendar/utils";
 interface DayRow {
   status: "blocked" | "booked";
   note: string | null;
+  updated_by: string | null;
 }
 
 interface DayEditModalProps {
@@ -81,6 +82,9 @@ export function DayEditModal({
                 </>
               )}
             </p>
+            {row.updated_by && (
+              <p className="mt-1 text-xs text-mist-700">Par {row.updated_by}</p>
+            )}
             <div className="mt-6 flex flex-wrap gap-3">
               <Button
                 type="button"

@@ -45,18 +45,21 @@ export type Database = {
           id: string
           note: string | null
           status: string
+          updated_by: string | null
         }
         Insert: {
           date: string
           id?: string
           note?: string | null
           status: string
+          updated_by?: string | null
         }
         Update: {
           date?: string
           id?: string
           note?: string | null
           status?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -69,6 +72,7 @@ export type Database = {
           message: string | null
           name: string
           phone: string
+          processed_by: string | null
           start_date: string
           status: string
         }
@@ -80,6 +84,7 @@ export type Database = {
           message?: string | null
           name: string
           phone: string
+          processed_by?: string | null
           start_date: string
           status?: string
         }
@@ -91,6 +96,7 @@ export type Database = {
           message?: string | null
           name?: string
           phone?: string
+          processed_by?: string | null
           start_date?: string
           status?: string
         }
@@ -143,7 +149,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      availability_public: {
+        Row: {
+          date: string | null
+          status: string | null
+        }
+        Insert: {
+          date?: string | null
+          status?: string | null
+        }
+        Update: {
+          date?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

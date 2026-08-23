@@ -26,11 +26,16 @@ export async function confirmBookingRequest(
   guestName: string
 ): Promise<void> {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const adminEmail = user?.email ?? null;
 
   const rows = eachDateInclusive(startDate, endDate).map((date) => ({
     date,
     status: "booked" as const,
     note: `Réservé par ${guestName}`,
+    updated_by: adminEmail,
   }));
 
   const { error: availabilityError } = await supabase
@@ -47,7 +52,7 @@ export async function confirmBookingRequest(
 
   const { error: requestError } = await supabase
     .from("booking_requests")
-    .update({ status: "confirmed" })
+    .update({ status: "confirmed", processed_by: adminEmail })
     .eq("id", id);
 
   if (requestError) {
@@ -63,9 +68,13 @@ export async function confirmBookingRequest(
 
 export async function declineBookingRequest(id: string): Promise<void> {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { error } = await supabase
     .from("booking_requests")
-    .update({ status: "declined" })
+    .update({ status: "declined", processed_by: user?.email ?? null })
     .eq("id", id);
 
   if (error) {

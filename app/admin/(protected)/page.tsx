@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminHomePage() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const [
     { data: availabilityRows },
@@ -14,7 +17,7 @@ export default async function AdminHomePage() {
   ] = await Promise.all([
     supabase
       .from("availability")
-      .select("date, status, note")
+      .select("date, status, note, updated_by")
       .order("date", { ascending: true }),
     supabase
       .from("pricing_rules")
@@ -57,10 +60,12 @@ export default async function AdminHomePage() {
         </p>
         <div className="mt-6 border border-foreground/10 bg-anthracite-800 p-6">
           <AvailabilityEditor
+            currentAdminEmail={user?.email ?? null}
             initialRows={(availabilityRows ?? []).map((row) => ({
               date: row.date,
               status: row.status as "blocked" | "booked",
               note: row.note,
+              updated_by: row.updated_by,
             }))}
           />
         </div>
