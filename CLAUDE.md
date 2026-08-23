@@ -49,7 +49,8 @@ Demandes de réservation envoyées via le site public (pas de paiement en ligne 
 - `created_at`
 
 ## Authentification admin
-- Un seul rôle : "admin" (mes parents). Auth Supabase par **magic link** envoyé à leur email — pas de mot de passe à retenir/perdre.
+- Un seul rôle : "admin" (mes parents). Auth Supabase par **email + mot de passe** (`signInWithPassword`) — pas d'inscription publique, les comptes admin sont créés directement via le dashboard Supabase.
+- Récupération de mot de passe oublié via `resetPasswordForEmail` (email envoyé par le SMTP Resend configuré), traitée sur `/admin/reset-password`.
 - Route `/admin` protégée : redirection vers `/admin/login` si pas de session valide.
 - Ne jamais exposer la clé `service_role` côté client — uniquement dans les Server Actions / Route Handlers.
 
