@@ -14,12 +14,20 @@ import { Snowfall } from "@/components/decor/Snowfall";
 import { ChairliftDivider } from "@/components/decor/ChairliftDivider";
 import { SkiTraceDivider } from "@/components/decor/SkiTraceDivider";
 import { ScrollToTopSnowmobile } from "@/components/decor/ScrollToTopSnowmobile";
+import { getBlockedDates } from "@/lib/availability";
+import { getSettings } from "@/lib/settings";
+import { getWeekAssignments } from "@/lib/pricingWeeks";
+import { createClient } from "@/lib/supabase/server";
 
-// NOTE : la section #disponibilites utilise temporairement le rendu "tel
-// quel" du fichier reservation.html fourni (voir ReservationExact) — pas
-// encore reliée aux vraies données (disponibilités, tarifs) le temps de
-// retravailler les fonctionnalités par-dessus ce design.
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const [blockedDates, settings, { data: pricingRules }, weekAssignments] = await Promise.all([
+    getBlockedDates(supabase),
+    getSettings(supabase),
+    supabase.from("pricing_rules").select("*"),
+    getWeekAssignments(supabase),
+  ]);
+
   return (
     <main className="flex-1">
       <AutoRefresh />
@@ -77,7 +85,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <ReservationExact />
+      <ReservationExact
+        blockedDates={blockedDates}
+        pricingRules={pricingRules ?? []}
+        weekAssignments={weekAssignments}
+        settings={settings}
+      />
 
       <ChairliftDivider />
 
