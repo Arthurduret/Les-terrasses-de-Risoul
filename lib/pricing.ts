@@ -46,6 +46,41 @@ export function calculateTotalPrice(
   };
 }
 
+export interface GrandTotal {
+  breakdown: PriceBreakdown;
+  cleaningFee: number;
+  touristTax: number;
+  grandTotal: number;
+}
+
+// Total complet d'une demande : séjour + ménage (optionnel) + taxe de
+// séjour (uniquement les adultes — les mineurs en sont exonérés par la
+// loi française). Source unique de vérité, utilisée à la fois par
+// l'aperçu du widget et le récapitulatif du formulaire de demande.
+export function calculateGrandTotal(
+  startDate: Date,
+  endDate: Date,
+  pricingRules: PricingRule[],
+  options: {
+    adults: number;
+    cleaningRequested: boolean;
+    cleaningFee: number;
+    touristTaxPerPersonPerNight: number;
+  }
+): GrandTotal {
+  const breakdown = calculateTotalPrice(startDate, endDate, pricingRules);
+  const cleaningFee = options.cleaningRequested ? options.cleaningFee : 0;
+  const touristTax =
+    breakdown.nights * options.adults * options.touristTaxPerPersonPerNight;
+
+  return {
+    breakdown,
+    cleaningFee,
+    touristTax,
+    grandTotal: breakdown.total + cleaningFee + touristTax,
+  };
+}
+
 // Sélectionne la règle de tarification applicable :
 // - filtre sur la saison si season_start/season_end sont définis
 // - la réduction dégressive s'applique au nombre de nuits total du séjour

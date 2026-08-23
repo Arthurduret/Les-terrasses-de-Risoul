@@ -146,8 +146,8 @@ export default async function HomePage() {
               Parlons de votre séjour
             </h2>
             <p className="mt-4 max-w-md text-base leading-relaxed text-mist-500">
-              Le formulaire de demande de réservation arrive bientôt. En
-              attendant, vous pouvez nous écrire directement.
+              Pour réserver, choisissez vos dates dans le calendrier
+              ci-dessus. Pour toute autre question, écrivez-nous directement.
             </p>
           </Reveal>
         </Container>

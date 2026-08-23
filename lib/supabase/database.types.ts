@@ -65,37 +65,58 @@ export type Database = {
       }
       booking_requests: {
         Row: {
+          address: string
+          adults: number
+          children: number
+          city: string
+          cleaning_requested: boolean
           created_at: string
           email: string
           end_date: string
+          first_name: string
           id: string
+          last_name: string
           message: string | null
-          name: string
           phone: string
+          postal_code: string
           processed_by: string | null
           start_date: string
           status: string
         }
         Insert: {
+          address: string
+          adults?: number
+          children?: number
+          city: string
+          cleaning_requested?: boolean
           created_at?: string
           email: string
           end_date: string
+          first_name: string
           id?: string
+          last_name: string
           message?: string | null
-          name: string
           phone: string
+          postal_code: string
           processed_by?: string | null
           start_date: string
           status?: string
         }
         Update: {
+          address?: string
+          adults?: number
+          children?: number
+          city?: string
+          cleaning_requested?: boolean
           created_at?: string
           email?: string
           end_date?: string
+          first_name?: string
           id?: string
+          last_name?: string
           message?: string | null
-          name?: string
           phone?: string
+          postal_code?: string
           processed_by?: string | null
           start_date?: string
           status?: string

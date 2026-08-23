@@ -4,6 +4,7 @@ import {
   formatMonthLabel,
   getMonthMatrix,
   isSameDay,
+  isSaturday,
 } from "./utils";
 
 type CalendarSize = "default" | "large";
@@ -71,15 +72,24 @@ export function Month({
                   date.getTime() < rangeEnd.getTime()
                 : false;
 
+            // Séjours du samedi au samedi uniquement : les autres jours ne
+            // sont jamais cliquables comme arrivée/départ. On les grise
+            // seulement s'ils ne font pas déjà partie de la semaine en
+            // cours de sélection/survol, pour ne pas casser l'affichage
+            // de la période choisie.
+            const notSelectable = !unavailable && !isSaturday(date);
+            const dimmed = notSelectable && !inRange && !isStart && !isEnd;
+
             return (
               <button
                 key={iso}
                 type="button"
-                disabled={unavailable}
+                disabled={unavailable || notSelectable}
                 onClick={() => onDayClick(date)}
                 onMouseEnter={() => onDayHover(date)}
                 className={dayButtonClasses({
                   unavailable,
+                  dimmed,
                   isCap: isStart || isEnd,
                   inRange,
                   isToday: isSameDay(date, today),
@@ -98,12 +108,14 @@ export function Month({
 
 function dayButtonClasses({
   unavailable,
+  dimmed,
   isCap,
   inRange,
   isToday,
   large,
 }: {
   unavailable: boolean;
+  dimmed: boolean;
   isCap: boolean;
   inRange: boolean;
   isToday: boolean;
@@ -115,6 +127,9 @@ function dayButtonClasses({
 
   if (unavailable) {
     return `${base} text-mist-800 line-through decoration-ember-600/70 cursor-not-allowed`;
+  }
+  if (dimmed) {
+    return `${base} text-mist-800 cursor-default`;
   }
   if (isCap) {
     return `${base} bg-ember-600 text-white font-semibold cursor-pointer`;

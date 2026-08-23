@@ -1,0 +1,111 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { formatISO, isSaturday, parseISODate } from "@/components/calendar/utils";
+import { createClient } from "@/lib/supabase/server";
+
+const MAX_OCCUPANTS = 6;
+
+export interface BookingRequestInput {
+  startDate: string;
+  endDate: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  postalCode: string;
+  city: string;
+  email: string;
+  phone: string;
+  adults: number;
+  children: number;
+  cleaningRequested: boolean;
+  message: string;
+}
+
+function eachDateInclusive(start: string, end: string): string[] {
+  const dates: string[] = [];
+  const cursor = parseISODate(start);
+  const last = parseISODate(end);
+  while (cursor.getTime() <= last.getTime()) {
+    dates.push(formatISO(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dates;
+}
+
+// Revalidation serveur des règles déjà appliquées côté calendrier public
+// (samedi-samedi, pas de jour bloqué dans la période) : une requête
+// directe à l'API pourrait contourner l'interface.
+export async function submitBookingRequest(
+  input: BookingRequestInput
+): Promise<{ error: string | null }> {
+  const start = parseISODate(input.startDate);
+  const end = parseISODate(input.endDate);
+
+  if (!isSaturday(start) || !isSaturday(end) || end.getTime() <= start.getTime()) {
+    return { error: "Les séjours se réservent du samedi au samedi." };
+  }
+
+  if (
+    !input.firstName.trim() ||
+    !input.lastName.trim() ||
+    !input.address.trim() ||
+    !input.postalCode.trim() ||
+    !input.city.trim() ||
+    !input.email.trim() ||
+    !input.phone.trim()
+  ) {
+    return { error: "Merci de compléter tous les champs." };
+  }
+
+  if (input.adults < 1 || input.children < 0) {
+    return { error: "Nombre de voyageurs invalide." };
+  }
+
+  if (input.adults + input.children > MAX_OCCUPANTS) {
+    return {
+      error: `L'appartement accueille au maximum ${MAX_OCCUPANTS} personnes.`,
+    };
+  }
+
+  const supabase = await createClient();
+  const dates = eachDateInclusive(input.startDate, input.endDate);
+
+  const { data: blockedRows, error: availabilityError } = await supabase
+    .from("availability_public")
+    .select("date")
+    .in("date", dates);
+
+  if (availabilityError) {
+    return { error: "Impossible de vérifier la disponibilité, réessayez." };
+  }
+
+  if (blockedRows.length > 0) {
+    return {
+      error: "Ces dates ne sont plus disponibles — merci de choisir une autre période.",
+    };
+  }
+
+  const { error } = await supabase.from("booking_requests").insert({
+    start_date: input.startDate,
+    end_date: input.endDate,
+    first_name: input.firstName.trim(),
+    last_name: input.lastName.trim(),
+    address: input.address.trim(),
+    postal_code: input.postalCode.trim(),
+    city: input.city.trim(),
+    email: input.email.trim(),
+    phone: input.phone.trim(),
+    adults: input.adults,
+    children: input.children,
+    cleaning_requested: input.cleaningRequested,
+    message: input.message.trim() || null,
+  });
+
+  if (error) {
+    return { error: "Impossible d'envoyer la demande, réessayez." };
+  }
+
+  revalidatePath("/admin");
+  return { error: null };
+}

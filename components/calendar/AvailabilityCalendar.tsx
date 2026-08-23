@@ -7,6 +7,7 @@ import {
   firstBlockedAfter,
   formatISO,
   formatShortDate,
+  isSaturday,
   rangeHasBlockedDay,
   startOfDay,
   startOfMonth,
@@ -52,14 +53,11 @@ export function AvailabilityCalendar({
 
   const previewEnd = useMemo(() => {
     if (!selectionStart || selectionEnd || !hoverDate) return null;
+    if (!isSaturday(hoverDate)) return null;
     if (hoverDate.getTime() <= selectionStart.getTime()) return null;
 
     const nextBlocked = firstBlockedAfter(selectionStart, blockedSet);
-    if (nextBlocked && nextBlocked.getTime() <= hoverDate.getTime()) {
-      const cappedEnd = new Date(nextBlocked);
-      cappedEnd.setDate(cappedEnd.getDate() - 1);
-      return cappedEnd.getTime() > selectionStart.getTime() ? cappedEnd : null;
-    }
+    if (nextBlocked && nextBlocked.getTime() <= hoverDate.getTime()) return null;
     return hoverDate;
   }, [selectionStart, selectionEnd, hoverDate, blockedSet]);
 
@@ -67,8 +65,11 @@ export function AvailabilityCalendar({
     return date.getTime() < today.getTime() || blockedSet.has(formatISO(date));
   }
 
+  // Séjours à la semaine, du samedi au samedi uniquement : seul un samedi
+  // peut devenir arrivée ou départ (l'écart entre deux samedis est donc
+  // toujours un multiple de 7 nuits).
   function handleDayClick(date: Date) {
-    if (isDayUnavailable(date)) return;
+    if (isDayUnavailable(date) || !isSaturday(date)) return;
     setError(null);
 
     if (!selectionStart || selectionEnd) {
@@ -170,6 +171,11 @@ export function AvailabilityCalendar({
 
       <div className="mt-6 min-h-10">
         {error && <p className="text-sm text-red-400">{error}</p>}
+        {!error && !selectionStart && (
+          <p className="text-sm text-mist-600">
+            Séjours à la semaine, du samedi au samedi.
+          </p>
+        )}
         {!error && selectionStart && (
           <div className="flex flex-wrap items-center gap-4">
             <p className="text-sm text-mist-400">

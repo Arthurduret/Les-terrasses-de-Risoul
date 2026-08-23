@@ -12,6 +12,11 @@ export function addMonths(date: Date, amount: number): Date {
   return new Date(date.getFullYear(), date.getMonth() + amount, 1);
 }
 
+// Séjours à la semaine, du samedi au samedi uniquement.
+export function isSaturday(date: Date): boolean {
+  return date.getDay() === 6;
+}
+
 export function isSameDay(a: Date, b: Date): boolean {
   return (
     a.getFullYear() === b.getFullYear() &&

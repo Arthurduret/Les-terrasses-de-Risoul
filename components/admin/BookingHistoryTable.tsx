@@ -5,11 +5,15 @@ import { formatShortDate, parseISODate, startOfDay } from "@/components/calendar
 
 interface BookingRequestRow {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string;
   start_date: string;
   end_date: string;
+  adults: number;
+  children: number;
+  cleaning_requested: boolean;
   status: string;
   processed_by: string | null;
 }
@@ -85,12 +89,14 @@ export function BookingHistoryTable({
         </p>
       ) : (
         <div className="mt-5 overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-sm">
+          <table className="w-full min-w-[820px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-foreground/15 text-left text-xs tracking-wide text-mist-600 uppercase">
                 <th className="pb-2 pr-4 font-normal">Voyageur</th>
                 <th className="pb-2 pr-4 font-normal">Contact</th>
                 <th className="pb-2 pr-4 font-normal">Dates</th>
+                <th className="pb-2 pr-4 font-normal">Personnes</th>
+                <th className="pb-2 pr-4 font-normal">Ménage</th>
                 <th className="pb-2 pr-4 font-normal">Statut</th>
                 <th className="pb-2 font-normal">Traité par</th>
               </tr>
@@ -98,13 +104,21 @@ export function BookingHistoryTable({
             <tbody className="divide-y divide-foreground/10">
               {filtered.map((r) => (
                 <tr key={r.id}>
-                  <td className="py-3 pr-4 text-foreground">{r.name}</td>
+                  <td className="py-3 pr-4 text-foreground">
+                    {r.first_name} {r.last_name}
+                  </td>
                   <td className="py-3 pr-4 whitespace-nowrap text-mist-400">
                     {r.email} · {r.phone}
                   </td>
                   <td className="py-3 pr-4 whitespace-nowrap text-mist-400">
                     {formatShortDate(parseISODate(r.start_date))} →{" "}
                     {formatShortDate(parseISODate(r.end_date))}
+                  </td>
+                  <td className="py-3 pr-4 whitespace-nowrap text-mist-400">
+                    {r.adults} ad.{r.children > 0 ? ` + ${r.children} enf.` : ""}
+                  </td>
+                  <td className="py-3 pr-4 whitespace-nowrap text-mist-400">
+                    {r.cleaning_requested ? "Oui" : "Non"}
                   </td>
                   <td className="py-3 pr-4">
                     <span className={statusColor(r.status)}>
