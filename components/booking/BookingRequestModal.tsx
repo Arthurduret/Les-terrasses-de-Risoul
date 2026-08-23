@@ -6,10 +6,13 @@ import { submitBookingRequest } from "@/app/(public)/actions/bookingRequest";
 import { Button } from "@/components/ui/Button";
 import { formatISO, formatShortDate } from "@/components/calendar/utils";
 import { calculateGrandTotal } from "@/lib/pricing";
+import { isValidEmail, isValidPhone } from "@/lib/validation";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { Database } from "@/lib/supabase/database.types";
 
 type PricingRule = Database["public"]["Tables"]["pricing_rules"]["Row"];
+
+const MAX_OCCUPANTS = 12;
 
 interface BookingRequestModalProps {
   startDate: Date | null;
@@ -30,11 +33,13 @@ function Counter({
   label,
   value,
   min,
+  max,
   onChange,
 }: {
   label: string;
   value: number;
   min: number;
+  max: number;
   onChange: (value: number) => void;
 }) {
   return (
@@ -53,9 +58,10 @@ function Counter({
         <span className="w-4 text-center text-foreground">{value}</span>
         <button
           type="button"
-          onClick={() => onChange(value + 1)}
+          onClick={() => onChange(Math.min(max, value + 1))}
+          disabled={value >= max}
           aria-label={`Ajouter un ${label.toLowerCase()}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/18 text-mist-300 hover:border-wood-500 hover:text-foreground"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/18 text-mist-300 hover:border-wood-500 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
         >
           +
         </button>
@@ -85,6 +91,7 @@ export function BookingRequestModal({
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "sent">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; phone?: string }>({});
 
   useEffect(() => setMounted(true), []);
 
@@ -123,8 +130,17 @@ export function BookingRequestModal({
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    setStatus("loading");
     setErrorMessage("");
+
+    const errors: { email?: string; phone?: string } = {};
+    if (!isValidEmail(email)) errors.email = "Adresse email invalide.";
+    if (!isValidPhone(phone)) {
+      errors.phone = "Numéro invalide — ex. 06 12 34 56 78.";
+    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    setStatus("loading");
 
     const result = await submitBookingRequest({
       startDate: formatISO(startDate!),
@@ -253,9 +269,15 @@ export function BookingRequestModal({
                     type="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setFieldErrors((f) => ({ ...f, email: undefined }));
+                    }}
                     className={inputClass}
                   />
+                  {fieldErrors.email && (
+                    <span className="mt-1 block text-xs text-red-400">{fieldErrors.email}</span>
+                  )}
                 </label>
                 <label className="block">
                   <span className="mb-1.5 block text-sm text-mist-400">Téléphone</span>
@@ -263,17 +285,37 @@ export function BookingRequestModal({
                     type="tel"
                     required
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setFieldErrors((f) => ({ ...f, phone: undefined }));
+                    }}
+                    placeholder="06 12 34 56 78"
                     className={inputClass}
                   />
+                  {fieldErrors.phone && (
+                    <span className="mt-1 block text-xs text-red-400">{fieldErrors.phone}</span>
+                  )}
                 </label>
               </div>
 
               <div className="space-y-3 border-t border-foreground/10 pt-5">
-                <Counter label="Adultes" value={adults} min={1} onChange={setAdults} />
-                <Counter label="Enfants" value={children} min={0} onChange={setChildren} />
+                <Counter
+                  label="Adultes"
+                  value={adults}
+                  min={1}
+                  max={MAX_OCCUPANTS - children}
+                  onChange={setAdults}
+                />
+                <Counter
+                  label="Enfants"
+                  value={children}
+                  min={0}
+                  max={MAX_OCCUPANTS - adults}
+                  onChange={setChildren}
+                />
                 <p className="text-xs text-mist-700">
-                  La taxe de séjour s&apos;applique aux adultes uniquement.
+                  L&apos;appartement accueille jusqu&apos;à {MAX_OCCUPANTS} personnes. La
+                  taxe de séjour s&apos;applique aux adultes uniquement.
                 </p>
               </div>
 

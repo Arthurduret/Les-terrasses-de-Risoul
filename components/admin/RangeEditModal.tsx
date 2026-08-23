@@ -10,8 +10,18 @@ import {
   isSameDay,
 } from "@/components/calendar/utils";
 
+type Status = "blocked" | "booked";
+
+const CLIENT_NOTE_PREFIX = "Réservé par ";
+
+function buildNote(status: Status, note: string): string | null {
+  const trimmed = note.trim();
+  if (!trimmed) return null;
+  return status === "booked" ? `${CLIENT_NOTE_PREFIX}${trimmed}` : trimmed;
+}
+
 interface DayRow {
-  status: "blocked" | "booked";
+  status: Status;
   note: string | null;
 }
 
@@ -20,7 +30,7 @@ interface RangeEditModalProps {
   rows: Map<string, DayRow>;
   pending: boolean;
   onClose: () => void;
-  onBlock: (dates: string[], note: string | null) => void;
+  onSave: (dates: string[], status: Status, note: string | null) => void;
   onRelease: (dates: string[]) => void;
 }
 
@@ -33,14 +43,18 @@ export function RangeEditModal({
   rows,
   pending,
   onClose,
-  onBlock,
+  onSave,
   onRelease,
 }: RangeEditModalProps) {
+  const [status, setStatus] = useState<Status>("blocked");
   const [note, setNote] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
-  useEffect(() => setNote(""), [dates]);
+  useEffect(() => {
+    setStatus("blocked");
+    setNote("");
+  }, [dates]);
 
   useEffect(() => {
     if (!dates) return;
@@ -102,15 +116,40 @@ export function RangeEditModal({
           </div>
         ) : (
           <>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setStatus("blocked")}
+                className={`flex-1 border px-3 py-2 text-sm transition-colors ${
+                  status === "blocked"
+                    ? "border-ember-600 bg-ember-700/30 text-foreground"
+                    : "border-foreground/15 text-mist-500 hover:text-foreground"
+                }`}
+              >
+                Bloquer
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatus("booked")}
+                className={`flex-1 border px-3 py-2 text-sm transition-colors ${
+                  status === "booked"
+                    ? "border-wood-500 bg-wood-900/20 text-foreground"
+                    : "border-foreground/15 text-mist-500 hover:text-foreground"
+                }`}
+              >
+                Réserver
+              </button>
+            </div>
+
             <label className="mt-4 block">
               <span className="block text-sm text-mist-400">
-                Note privée pour le blocage (optionnel)
+                {status === "booked" ? "Nom du client" : "Note privée (optionnel)"}
               </span>
               <input
                 autoFocus
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                placeholder="Ex. Semaine perso"
+                placeholder={status === "booked" ? "Ex. Famille Dupont" : "Ex. Semaine perso"}
                 className="mt-1.5 w-full border border-foreground/15 bg-background px-3.5 py-2.5 text-foreground focus:border-wood-500 focus:outline-none"
               />
             </label>
@@ -118,10 +157,11 @@ export function RangeEditModal({
               <Button
                 type="button"
                 variant="primary"
-                disabled={pending}
-                onClick={() => onBlock(editableIsos, note.trim() || null)}
+                disabled={pending || (status === "booked" && !note.trim())}
+                onClick={() => onSave(editableIsos, status, buildNote(status, note))}
               >
-                Bloquer {editableIsos.length > 1 ? `ces ${editableIsos.length} dates` : "cette date"}
+                {status === "booked" ? "Réserver" : "Bloquer"}{" "}
+                {editableIsos.length > 1 ? `ces ${editableIsos.length} dates` : "cette date"}
               </Button>
               {blockedIsos.length > 0 && (
                 <Button

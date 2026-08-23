@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  blockDate,
-  blockDates,
+  setAvailability,
+  setAvailabilityRange,
   unblockDate,
   unblockDates,
 } from "@/app/admin/(protected)/actions/availability";
@@ -39,6 +39,15 @@ export function AvailabilityEditor({ initialRows, currentAdminLabel }: Availabil
   const [rows, setRows] = useState<Map<string, Row>>(
     () => new Map(initialRows.map((r) => [r.date, r]))
   );
+
+  // initialRows change quand la page se revalide (ex. confirmer une demande
+  // ailleurs sur la page bloque des dates) — sans cet effet, ce composant
+  // ne le verrait jamais : useState() n'exécute son initialiseur qu'au
+  // montage, il ignore les nouvelles props tant que le composant reste
+  // monté.
+  useEffect(() => {
+    setRows(new Map(initialRows.map((r) => [r.date, r])));
+  }, [initialRows]);
   const [visibleMonth, setVisibleMonth] = useState(() =>
     startOfMonth(startOfDay(new Date()))
   );
@@ -132,20 +141,21 @@ export function AvailabilityEditor({ initialRows, currentAdminLabel }: Availabil
     setIsDragging(true);
   }
 
-  async function handleBlock(note: string | null) {
+  async function handleSave(status: "blocked" | "booked", note: string | null) {
     const date = editingDate;
     if (!date) return;
     const iso = formatISO(date);
+    const previous = rows.get(iso);
     setError(null);
     setEditingDate(null);
 
     setRows((prev) => {
       const next = new Map(prev);
-      next.set(iso, { date: iso, status: "blocked", note, updated_by: currentAdminLabel });
+      next.set(iso, { date: iso, status, note, updated_by: currentAdminLabel });
       return next;
     });
     setPendingDates((p) => new Set(p).add(iso));
-    const result = await blockDate(iso, note);
+    const result = await setAvailability(iso, status, note);
     setPendingDates((p) => {
       const next = new Set(p);
       next.delete(iso);
@@ -155,7 +165,11 @@ export function AvailabilityEditor({ initialRows, currentAdminLabel }: Availabil
       setError(result.error);
       setRows((prev) => {
         const next = new Map(prev);
-        next.delete(iso);
+        if (previous) {
+          next.set(iso, previous);
+        } else {
+          next.delete(iso);
+        }
         return next;
       });
     }
@@ -193,14 +207,18 @@ export function AvailabilityEditor({ initialRows, currentAdminLabel }: Availabil
     }
   }
 
-  async function handleBulkBlock(dates: string[], note: string | null) {
+  async function handleBulkSave(
+    dates: string[],
+    status: "blocked" | "booked",
+    note: string | null
+  ) {
     setRangeSelection(null);
     setError(null);
 
     setRows((prev) => {
       const next = new Map(prev);
       dates.forEach((iso) =>
-        next.set(iso, { date: iso, status: "blocked", note, updated_by: currentAdminLabel })
+        next.set(iso, { date: iso, status, note, updated_by: currentAdminLabel })
       );
       return next;
     });
@@ -209,7 +227,7 @@ export function AvailabilityEditor({ initialRows, currentAdminLabel }: Availabil
       dates.forEach((d) => next.add(d));
       return next;
     });
-    const result = await blockDates(dates, note);
+    const result = await setAvailabilityRange(dates, status, note);
     setPendingDates((p) => {
       const next = new Set(p);
       dates.forEach((d) => next.delete(d));
@@ -358,7 +376,7 @@ export function AvailabilityEditor({ initialRows, currentAdminLabel }: Availabil
         row={editingRow}
         pending={editingPending}
         onClose={() => setEditingDate(null)}
-        onBlock={handleBlock}
+        onSave={handleSave}
         onRelease={handleRelease}
       />
 
@@ -367,7 +385,7 @@ export function AvailabilityEditor({ initialRows, currentAdminLabel }: Availabil
         rows={rows}
         pending={rangePending}
         onClose={() => setRangeSelection(null)}
-        onBlock={handleBulkBlock}
+        onSave={handleBulkSave}
         onRelease={handleBulkRelease}
       />
     </div>

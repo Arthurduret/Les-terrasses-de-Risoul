@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { formatISO, isSaturday, parseISODate } from "@/components/calendar/utils";
 import { createClient } from "@/lib/supabase/server";
+import { isValidEmail, isValidPhone } from "@/lib/validation";
 
-const MAX_OCCUPANTS = 6;
+const MAX_OCCUPANTS = 12;
 
 export interface BookingRequestInput {
   startDate: string;
@@ -56,6 +57,14 @@ export async function submitBookingRequest(
     !input.phone.trim()
   ) {
     return { error: "Merci de compléter tous les champs." };
+  }
+
+  if (!isValidEmail(input.email)) {
+    return { error: "Adresse email invalide." };
+  }
+
+  if (!isValidPhone(input.phone)) {
+    return { error: "Numéro de téléphone invalide." };
   }
 
   if (input.adults < 1 || input.children < 0) {
