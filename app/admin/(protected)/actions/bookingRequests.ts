@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eachNightInclusive } from "@/components/calendar/utils";
+import { eachNightInclusive, parseISODate } from "@/components/calendar/utils";
 import { currentAdminLabel } from "@/lib/adminLabel";
 import { sendEmail } from "@/lib/email";
 import { bookingConfirmedEmail } from "@/lib/emailTemplates";
@@ -82,9 +82,10 @@ async function sendConfirmationEmail(
     getSettings(supabase),
   ]);
 
-  const start = new Date(request.start_date);
-  const end = new Date(request.end_date);
+  const start = parseISODate(request.start_date);
+  const end = parseISODate(request.end_date);
 
+  let pricing = null;
   try {
     const grandTotal = calculateGrandTotal(start, end, pricingRules ?? [], {
       adults: request.adults,
@@ -92,30 +93,33 @@ async function sendConfirmationEmail(
       cleaningFee: Number(settings.cleaning_fee ?? 0) || 0,
       touristTaxPerPersonPerNight: Number(settings.tourist_tax_per_person_per_night ?? 0) || 0,
     });
-
-    const { subject, html } = bookingConfirmedEmail({
-      firstName: request.first_name,
-      startDate: request.start_date,
-      endDate: request.end_date,
+    pricing = {
       nights: grandTotal.breakdown.nights,
       pricePerNight: grandTotal.breakdown.pricePerNight,
       cleaningFee: grandTotal.cleaningFee,
       touristTax: grandTotal.touristTax,
       grandTotal: grandTotal.grandTotal,
-      checkinTime: settings.checkin_time || undefined,
-      checkoutTime: settings.checkout_time || undefined,
-      contactEmail: settings.contact_email || undefined,
-    });
-
-    await sendEmail({ to: request.email, subject, html });
+    };
   } catch (err) {
-    // Pas de tarif applicable, ou autre — la reservation reste confirmee,
-    // on ne bloque jamais le flux principal pour un email.
+    // Aucun tarif applicable configuré pour ces dates : l'email part quand
+    // même, juste sans le récapitulatif de prix (voir bookingConfirmedEmail).
     console.error(
-      "Email de confirmation non envoyé :",
+      "Prix non calculé pour l'email de confirmation :",
       err instanceof Error ? err.message : err
     );
   }
+
+  const { subject, html } = bookingConfirmedEmail({
+    firstName: request.first_name,
+    startDate: request.start_date,
+    endDate: request.end_date,
+    pricing,
+    checkinTime: settings.checkin_time || undefined,
+    checkoutTime: settings.checkout_time || undefined,
+    contactEmail: settings.contact_email || undefined,
+  });
+
+  await sendEmail({ to: request.email, subject, html });
 }
 
 export async function declineBookingRequest(id: string): Promise<void> {

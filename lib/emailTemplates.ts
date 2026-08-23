@@ -52,32 +52,28 @@ export function bookingRequestReceivedEmail(params: {
   };
 }
 
-export function bookingConfirmedEmail(params: {
-  firstName: string;
-  startDate: string;
-  endDate: string;
+interface PricingSummary {
   nights: number;
   pricePerNight: number;
   cleaningFee: number;
   touristTax: number;
   grandTotal: number;
+}
+
+export function bookingConfirmedEmail(params: {
+  firstName: string;
+  startDate: string;
+  endDate: string;
+  // null quand aucun tarif n'est configuré pour ces dates — l'email part
+  // quand même, juste sans le récapitulatif de prix, plutôt que d'être
+  // silencieusement bloqué en attendant que les tarifs soient réglés.
+  pricing: PricingSummary | null;
   checkinTime?: string;
   checkoutTime?: string;
   contactEmail?: string;
 }): { subject: string; html: string } {
-  const {
-    firstName,
-    startDate,
-    endDate,
-    nights,
-    pricePerNight,
-    cleaningFee,
-    touristTax,
-    grandTotal,
-    checkinTime,
-    checkoutTime,
-    contactEmail,
-  } = params;
+  const { firstName, startDate, endDate, pricing, checkinTime, checkoutTime, contactEmail } =
+    params;
 
   const eur = (amount: number) => `${Math.round(amount).toLocaleString("fr-FR")} €`;
 
@@ -105,15 +101,24 @@ export function bookingConfirmedEmail(params: {
             </p>`
           : ""
       }
-      <table style="width:100%;border-collapse:collapse;margin-top:16px;border-top:1px solid rgba(237,231,223,0.1);padding-top:8px;">
-        ${lineRow(`${eur(pricePerNight)} × ${nights} nuit${nights > 1 ? "s" : ""}`, pricePerNight * nights)}
-        ${cleaningFee > 0 ? lineRow("Ménage", cleaningFee) : ""}
-        ${touristTax > 0 ? lineRow("Taxe de séjour", touristTax) : ""}
-        <tr>
-          <td style="padding:12px 0 0;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:#8e8880;border-top:1px solid rgba(237,231,223,0.1);">Total</td>
-          <td style="padding:12px 0 0;font-size:20px;color:#ede7df;text-align:right;border-top:1px solid rgba(237,231,223,0.1);">${eur(grandTotal)}</td>
-        </tr>
-      </table>
+      ${
+        pricing
+          ? `<table style="width:100%;border-collapse:collapse;margin-top:16px;border-top:1px solid rgba(237,231,223,0.1);padding-top:8px;">
+              ${lineRow(
+                `${eur(pricing.pricePerNight)} × ${pricing.nights} nuit${pricing.nights > 1 ? "s" : ""}`,
+                pricing.pricePerNight * pricing.nights
+              )}
+              ${pricing.cleaningFee > 0 ? lineRow("Ménage", pricing.cleaningFee) : ""}
+              ${pricing.touristTax > 0 ? lineRow("Taxe de séjour", pricing.touristTax) : ""}
+              <tr>
+                <td style="padding:12px 0 0;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:#8e8880;border-top:1px solid rgba(237,231,223,0.1);">Total</td>
+                <td style="padding:12px 0 0;font-size:20px;color:#ede7df;text-align:right;border-top:1px solid rgba(237,231,223,0.1);">${eur(pricing.grandTotal)}</td>
+              </tr>
+            </table>`
+          : `<p style="margin:16px 0 0;font-size:14px;line-height:1.6;color:#c8c1b7;">
+              Le détail du tarif vous sera communiqué séparément.
+            </p>`
+      }
       <p style="margin:24px 0 0;font-size:14px;line-height:1.6;color:#c8c1b7;">
         Nous revenons vers vous prochainement au sujet du contrat de location
         et de l&apos;acompte.
