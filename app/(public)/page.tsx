@@ -7,6 +7,7 @@ import { HeroSlideshow } from "@/components/gallery/HeroSlideshow";
 import { HeroBadges } from "@/components/hero/HeroBadges";
 import { PhotoGallery } from "@/components/gallery/PhotoGallery";
 import { LocalBusinessCard } from "@/components/activities/LocalBusinessCard";
+import { ChairliftCarousel } from "@/components/activities/ChairliftCarousel";
 import { LOCAL_BUSINESSES } from "@/components/activities/local-businesses";
 import { BookingWidget } from "@/components/booking/BookingWidget";
 import { Snowfall } from "@/components/decor/Snowfall";
@@ -112,28 +113,32 @@ export default async function HomePage() {
 
       <ChairliftDivider />
 
-      <section id="activites" className="bg-anthracite-700 py-24 sm:py-32">
-        <Container wide>
-          <Reveal>
-            <p className="mb-4 text-xs tracking-[0.32em] text-wood-500 uppercase">
-              À faire à Risoul
-            </p>
-            <h2 className="max-w-xl font-display text-4xl text-foreground sm:text-5xl">
-              La station, à deux pas de la porte
-            </h2>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-mist-500">
-              Commerces, tables et activités accessibles à pied depuis
-              l&apos;appartement.
-            </p>
-          </Reveal>
-          <div className="mt-12 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-            {LOCAL_BUSINESSES.map((business, i) => (
-              <Reveal key={business.id} delayMs={(i % 3) * 80}>
-                <LocalBusinessCard business={business} />
-              </Reveal>
-            ))}
-          </div>
-        </Container>
+      <section id="activites" className="bg-anthracite-700">
+        <div className="py-24 sm:py-32 md:hidden">
+          <Container wide>
+            <Reveal>
+              <p className="mb-4 text-xs tracking-[0.32em] text-wood-500 uppercase">
+                À faire à Risoul
+              </p>
+              <h2 className="max-w-xl font-display text-4xl text-foreground sm:text-5xl">
+                La station, à deux pas de la porte
+              </h2>
+              <p className="mt-4 max-w-lg text-base leading-relaxed text-mist-500">
+                Commerces, tables et activités accessibles à pied depuis
+                l&apos;appartement.
+              </p>
+            </Reveal>
+            <div className="mt-12 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+              {LOCAL_BUSINESSES.map((business, i) => (
+                <Reveal key={business.id} delayMs={(i % 3) * 80}>
+                  <LocalBusinessCard business={business} />
+                </Reveal>
+              ))}
+            </div>
+          </Container>
+        </div>
+
+        <ChairliftCarousel />
       </section>
 
       <SkiTraceDivider />

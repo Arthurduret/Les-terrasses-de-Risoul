@@ -134,6 +134,26 @@ body {
   transform-origin: top center;
 }
 
+/* Léger balancement des cartes-cabines du carrousel "À faire à Risoul"
+   (ChairliftCarousel) — distinct de .chairlift-sway (ChairliftDivider),
+   amplitude plus discrète car chaque cabine porte une carte entière. */
+@keyframes chairlift-card-sway {
+  0%,
+  100% {
+    transform: rotate(-1.6deg);
+  }
+  50% {
+    transform: rotate(1.6deg);
+  }
+}
+
+.chairlift-card-sway {
+  transform-origin: 50% 6px;
+  animation-name: chairlift-card-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .snowflake {
     animation: none;
@@ -151,6 +171,10 @@ body {
   }
 
   .chairlift-sway {
+    animation: none;
+  }
+
+  .chairlift-card-sway {
     animation: none;
   }
 }
