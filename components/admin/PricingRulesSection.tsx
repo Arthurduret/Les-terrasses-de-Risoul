@@ -1,39 +1,42 @@
-import {
-  createPricingRule,
-  deletePricingRule,
-  updatePricingRule,
-} from "@/app/admin/(protected)/actions/pricing";
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { ConfirmSubmitButton } from "./ConfirmSubmitButton";
-import { PricingRuleFields } from "./PricingRuleFields";
+import { PricingRuleModal } from "./PricingRuleModal";
 import type { Database } from "@/lib/supabase/database.types";
 
 type PricingRule = Database["public"]["Tables"]["pricing_rules"]["Row"];
 
+const FALLBACK_COLOR = "#c79267";
+
+function eur(amount: number): string {
+  return `${Math.round(amount).toLocaleString("fr-FR")} €`;
+}
+
+// Liste compacte : chaque tarif tient sur une ligne, le formulaire complet
+// ne s'ouvre (en fenêtre) que pour créer ou modifier un tarif précis.
 export function PricingRulesSection({ rules }: { rules: PricingRule[] }) {
+  const [target, setTarget] = useState<PricingRule | "new" | null>(null);
+
   return (
     <div>
-      <div className="space-y-6">
+      <div className="space-y-2.5">
         {rules.map((rule) => (
-          <form
+          <button
             key={rule.id}
-            action={updatePricingRule.bind(null, rule.id)}
-            className="border border-foreground/10 bg-anthracite-800 p-6"
+            type="button"
+            onClick={() => setTarget(rule)}
+            className="flex w-full items-center gap-4 border border-foreground/10 bg-anthracite-800 px-5 py-3.5 text-left transition-colors hover:border-wood-500/45"
           >
-            <PricingRuleFields defaultValues={rule} />
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Button type="submit" variant="primary">
-                Enregistrer
-              </Button>
-              <ConfirmSubmitButton
-                action={deletePricingRule.bind(null, rule.id)}
-                confirmMessage={`Supprimer le tarif "${rule.label}" ?`}
-                variant="secondary"
-              >
-                Supprimer
-              </ConfirmSubmitButton>
-            </div>
-          </form>
+            <span
+              className="h-3 w-3 shrink-0 rounded-sm"
+              style={{ backgroundColor: rule.color ?? FALLBACK_COLOR }}
+            />
+            <span className="flex-1 truncate text-sm text-foreground">{rule.label}</span>
+            <span className="shrink-0 text-sm text-mist-400">
+              {eur(rule.price_per_night * 7)} / semaine
+            </span>
+          </button>
         ))}
 
         {rules.length === 0 && (
@@ -44,20 +47,16 @@ export function PricingRulesSection({ rules }: { rules: PricingRule[] }) {
         )}
       </div>
 
-      <div className="mt-10 border-t border-foreground/10 pt-8">
-        <h3 className="font-display text-lg text-foreground">
-          Ajouter un tarif
-        </h3>
-        <form
-          action={createPricingRule}
-          className="mt-4 border border-foreground/10 bg-anthracite-800 p-6"
-        >
-          <PricingRuleFields />
-          <Button type="submit" variant="primary" className="mt-5">
-            Ajouter
-          </Button>
-        </form>
-      </div>
+      <Button
+        type="button"
+        variant="secondary"
+        className="mt-5"
+        onClick={() => setTarget("new")}
+      >
+        Ajouter un tarif
+      </Button>
+
+      <PricingRuleModal target={target} onClose={() => setTarget(null)} />
     </div>
   );
 }
