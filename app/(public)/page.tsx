@@ -6,29 +6,20 @@ import { Logo } from "@/components/ui/Logo";
 import { Reveal } from "@/components/ui/Reveal";
 import { HeroSlideshow } from "@/components/gallery/HeroSlideshow";
 import { HeroBadges } from "@/components/hero/HeroBadges";
-import { PhotoGallery } from "@/components/gallery/PhotoGallery";
+import { ReservationExact } from "@/components/booking/ReservationExact";
 import { LocalBusinessCard } from "@/components/activities/LocalBusinessCard";
 import { ChairliftCarousel } from "@/components/activities/ChairliftCarousel";
 import { LOCAL_BUSINESSES } from "@/components/activities/local-businesses";
-import { BookingWidget } from "@/components/booking/BookingWidget";
 import { Snowfall } from "@/components/decor/Snowfall";
 import { ChairliftDivider } from "@/components/decor/ChairliftDivider";
 import { SkiTraceDivider } from "@/components/decor/SkiTraceDivider";
 import { ScrollToTopSnowmobile } from "@/components/decor/ScrollToTopSnowmobile";
-import { getBlockedDates } from "@/lib/availability";
-import { getSettings } from "@/lib/settings";
-import { getWeekAssignments } from "@/lib/pricingWeeks";
-import { createClient } from "@/lib/supabase/server";
 
-export default async function HomePage() {
-  const supabase = await createClient();
-  const [blockedDates, settings, { data: pricingRules }, weekAssignments] = await Promise.all([
-    getBlockedDates(supabase),
-    getSettings(supabase),
-    supabase.from("pricing_rules").select("*"),
-    getWeekAssignments(supabase),
-  ]);
-
+// NOTE : la section #disponibilites utilise temporairement le rendu "tel
+// quel" du fichier reservation.html fourni (voir ReservationExact) — pas
+// encore reliée aux vraies données (disponibilités, tarifs) le temps de
+// retravailler les fonctionnalités par-dessus ce design.
+export default function HomePage() {
   return (
     <main className="flex-1">
       <AutoRefresh />
@@ -86,31 +77,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="disponibilites" className="py-24 sm:py-32">
-        <Container wide>
-          <Reveal>
-            <p className="mb-4 text-xs tracking-[0.32em] text-wood-500 uppercase">
-              L&apos;appartement
-            </p>
-            <h2 className="font-display text-4xl text-foreground sm:text-5xl">
-              Un aperçu du séjour
-            </h2>
-          </Reveal>
-          <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_380px] lg:items-start">
-            <Reveal>
-              <PhotoGallery />
-            </Reveal>
-            <div className="lg:sticky lg:top-8">
-              <BookingWidget
-                blockedDates={blockedDates}
-                pricingRules={pricingRules ?? []}
-                weekAssignments={weekAssignments}
-                settings={settings}
-              />
-            </div>
-          </div>
-        </Container>
-      </section>
+      <ReservationExact />
 
       <ChairliftDivider />
 
