@@ -14,6 +14,7 @@ import { BookingWidget } from "@/components/booking/BookingWidget";
 import { Snowfall } from "@/components/decor/Snowfall";
 import { ChairliftDivider } from "@/components/decor/ChairliftDivider";
 import { SkiTraceDivider } from "@/components/decor/SkiTraceDivider";
+import { ScrollToTopSnowmobile } from "@/components/decor/ScrollToTopSnowmobile";
 import { getBlockedDates } from "@/lib/availability";
 import { getSettings } from "@/lib/settings";
 import { getWeekAssignments } from "@/lib/pricingWeeks";
@@ -31,6 +32,7 @@ export default async function HomePage() {
   return (
     <main className="flex-1">
       <AutoRefresh />
+      <ScrollToTopSnowmobile />
       <section className="relative h-screen min-h-[680px] overflow-hidden border-b border-wood-700">
         <HeroSlideshow />
         <Snowfall />

@@ -154,6 +154,40 @@ body {
   animation-iteration-count: infinite;
 }
 
+/* Bouton "remonter en haut" (ScrollToTopSnowmobile) : léger dandinement
+   au repos + traînée de neige qui s'estompe derrière la chenille. */
+@keyframes snowmobile-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.snowmobile-idle {
+  animation: snowmobile-bob 1.8s ease-in-out infinite;
+}
+
+@keyframes snowmobile-puff {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  40% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4) translateX(-6px);
+  }
+}
+
+.snowmobile-puff {
+  animation: snowmobile-puff 1.6s ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .snowflake {
     animation: none;
@@ -175,6 +209,11 @@ body {
   }
 
   .chairlift-card-sway {
+    animation: none;
+  }
+
+  .snowmobile-idle,
+  .snowmobile-puff {
     animation: none;
   }
 }

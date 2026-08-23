@@ -10,12 +10,11 @@ const PATH_2 =
 // Trait qui se dessine au fil du scroll (pas juste à l'apparition) : la
 // progression est recalculée à chaque scroll (throttlée par rAF) et pilote
 // stroke-dashoffset directement en style, sans re-render React — même
-// esprit que le parallax du hero. Une petite luge suit le premier tracé.
+// esprit que le parallax du hero.
 export function SkiTraceDivider() {
   const svgRef = useRef<SVGSVGElement>(null);
   const path1Ref = useRef<SVGPathElement>(null);
   const path2Ref = useRef<SVGPathElement>(null);
-  const sledRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -56,15 +55,6 @@ export function SkiTraceDivider() {
 
       p1!.style.strokeDashoffset = String(len1 * (1 - progress));
       p2!.style.strokeDashoffset = String(len2 * (1 - progress));
-
-      if (sledRef.current) {
-        const point = p1!.getPointAtLength(len1 * progress);
-        const sx = rect.width / 800;
-        const sy = rect.height / 40;
-        sledRef.current.style.transform = `translate3d(${point.x * sx}px, ${point.y * sy}px, 0)`;
-        sledRef.current.style.opacity =
-          progress > 0.02 && progress < 0.98 ? "1" : "0";
-      }
     }
 
     function handleScroll() {
@@ -83,11 +73,6 @@ export function SkiTraceDivider() {
 
   return (
     <div className="relative py-8" aria-hidden="true">
-      <div
-        ref={sledRef}
-        className="absolute left-0 top-0 z-10 h-2.5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ember-600 opacity-0 shadow-[0_0_8px_rgba(142,47,38,0.6)]"
-        style={{ transition: "opacity 300ms" }}
-      />
       <svg
         ref={svgRef}
         viewBox="0 0 800 40"
