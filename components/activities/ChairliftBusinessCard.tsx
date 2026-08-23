@@ -1,38 +1,43 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { LocalBusiness } from "./local-businesses";
 
 interface ChairliftBusinessCardProps {
   business: LocalBusiness;
 }
 
-// Piste de déplacement du siège, en unités du viewBox (0 0 100 220).
-const TRACK_TOP = 34;
-const TRACK_BOTTOM = 186;
+// Hauteur d'un "wagon" (câble + siège + personnage) dans le motif répété,
+// en unités du viewBox (0 0 100 260) — un motif SVG <pattern>, pas des
+// wagons dessinés un par un, pour un défilement infini sans point de
+// bouclage à gérer.
+const TILE_HEIGHT = 130;
+// Vitesse de défilement : unités de motif par pixel de scroll.
+const SCROLL_SPEED = 0.35;
 
-// Variante test de LocalBusinessCard : le badge/initiale est remplacé par
-// une scène de télésiège dont le siège se déplace verticalement au fil du
-// scroll — même technique que SkiTraceDivider (progression recalculée par
-// scroll+rAF, transform posé directement en style, pas de re-render React).
+// Variante test de LocalBusinessCard, vue de face : un câble continu sur
+// lequel défilent des sièges au fil du scroll (translation du motif via
+// l'attribut patternTransform, recalculée par scroll+rAF — même
+// technique que SkiTraceDivider, sans re-render React).
 export function ChairliftBusinessCard({ business }: ChairliftBusinessCardProps) {
   const sceneRef = useRef<HTMLDivElement>(null);
-  const carRef = useRef<SVGGElement>(null);
-  // Défaut défensif : ce composant n'est censé être monté que pour les
+  const patternRef = useRef<SVGPatternElement>(null);
+  const patternId = useId();
+  // Défensif : ce composant n'est censé être monté que pour les
   // commerces où accentColor est défini (voir la condition dans page.tsx).
   const accentColor = business.accentColor ?? "var(--color-wood-500)";
 
   useEffect(() => {
     const scene = sceneRef.current;
-    const car = carRef.current;
-    if (!scene || !car) return;
+    const pattern = patternRef.current;
+    if (!scene || !pattern) return;
 
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
     if (reduceMotion) {
-      car.style.transform = `translate(50px, ${(TRACK_TOP + TRACK_BOTTOM) / 2}px)`;
+      pattern.setAttribute("patternTransform", `translate(0, ${TILE_HEIGHT / 2})`);
       return;
     }
 
@@ -40,15 +45,8 @@ export function ChairliftBusinessCard({ business }: ChairliftBusinessCardProps) 
 
     function update() {
       const rect = scene!.getBoundingClientRect();
-      const progress = Math.max(
-        0,
-        Math.min(
-          1,
-          (window.innerHeight - rect.top) / (rect.height + window.innerHeight)
-        )
-      );
-      const y = TRACK_TOP + (TRACK_BOTTOM - TRACK_TOP) * progress;
-      car!.style.transform = `translate(50px, ${y}px)`;
+      const offset = ((window.innerHeight - rect.top) * SCROLL_SPEED) % TILE_HEIGHT;
+      pattern!.setAttribute("patternTransform", `translate(0, ${offset})`);
     }
 
     function handleScroll() {
@@ -67,70 +65,58 @@ export function ChairliftBusinessCard({ business }: ChairliftBusinessCardProps) 
 
   return (
     <div className="group border border-foreground/10 bg-anthracite-800 p-6 transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:border-wood-500/45">
-      <div ref={sceneRef} className="relative -mx-1 h-56 w-[calc(100%+0.5rem)]" aria-hidden="true">
+      <div ref={sceneRef} className="relative -mx-1 h-64 w-[calc(100%+0.5rem)] overflow-hidden" aria-hidden="true">
         <svg
-          viewBox="0 0 100 220"
-          preserveAspectRatio="xMidYMid meet"
+          viewBox="0 0 100 260"
+          preserveAspectRatio="xMidYMid slice"
           className="h-full w-full"
         >
-          <line
-            x1="50"
-            y1="0"
-            x2="50"
-            y2="220"
-            stroke="var(--color-wood-700)"
-            strokeWidth="1.5"
-            strokeDasharray="1 3"
-          />
+          <defs>
+            <pattern
+              ref={patternRef}
+              id={patternId}
+              x="0"
+              y="0"
+              width="100"
+              height={TILE_HEIGHT}
+              patternUnits="userSpaceOnUse"
+            >
+              {/* Câble : une ligne continue par tuile, bout à bout d'une
+                  tuile à l'autre une fois répétée -> un seul trait sans
+                  coupure sur toute la hauteur de la scène. */}
+              <line
+                x1="50"
+                y1="0"
+                x2="50"
+                y2={TILE_HEIGHT}
+                stroke="var(--color-wood-700)"
+                strokeWidth="1.5"
+                strokeDasharray="1 3"
+              />
 
-          <line
-            x1="22"
-            y1="16"
-            x2="78"
-            y2="16"
-            stroke="var(--color-wood-500)"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <line x1="50" y1="0" x2="50" y2="16" stroke="var(--color-wood-500)" strokeWidth="3" />
-          <circle cx="50" cy="16" r="2.4" fill="var(--color-wood-500)" />
+              {/* Siège */}
+              <rect x="30" y="48" width="40" height="4" rx="2" fill="var(--color-wood-700)" />
+              {/* Barre de sécurité */}
+              <path
+                d="M 30 50 Q 50 58 70 50"
+                fill="none"
+                stroke="var(--color-wood-700)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
 
-          <line
-            x1="26"
-            y1="204"
-            x2="74"
-            y2="204"
-            stroke="var(--color-wood-700)"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-
-          <g ref={carRef} style={{ willChange: "transform" }}>
-            <line x1="0" y1="-16" x2="0" y2="-2" stroke="var(--color-mist-700)" strokeWidth="1.5" />
-            <rect x="-16" y="-2" width="32" height="4" rx="2" fill="var(--color-wood-700)" />
-
-            <line
-              x1="-9"
-              y1="2"
-              x2="-15"
-              y2="9"
-              stroke={accentColor}
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <line
-              x1="9"
-              y1="2"
-              x2="15"
-              y2="9"
-              stroke={accentColor}
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-
-            <rect x="-7" y="-19" width="14" height="15" rx="4" fill={accentColor} />
-            <circle cx="0" cy="-25" r="5" fill={accentColor} />
-          </g>
+              {/* Personnage, vu de face */}
+              <circle cx="50" cy="24" r="6" fill={accentColor} />
+              <rect x="41" y="28" width="18" height="18" rx="6" fill={accentColor} />
+              <line x1="41" y1="34" x2="34" y2="48" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
+              <line x1="59" y1="34" x2="66" y2="48" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
+              <line x1="44" y1="52" x2="40" y2="66" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
+              <line x1="56" y1="52" x2="60" y2="66" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
+              <circle cx="40" cy="68" r="2.2" fill="var(--color-mist-700)" />
+              <circle cx="60" cy="68" r="2.2" fill="var(--color-mist-700)" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="100" height="260" fill={`url(#${patternId})`} />
         </svg>
       </div>
 
