@@ -169,7 +169,18 @@ export function AvailabilityCalendar({
         )}
       </div>
 
-      <div className="mt-6 min-h-10">
+      <div className="mt-4 flex items-center gap-5 text-xs text-mist-600">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-ember-600" aria-hidden="true" />
+          Sélection
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-mist-800/50" aria-hidden="true" />
+          Indisponible
+        </span>
+      </div>
+
+      <div className="mt-4 min-h-10">
         {error && <p className="text-sm text-red-400">{error}</p>}
         {!error && !selectionStart && (
           <p className="text-sm text-mist-600">

@@ -47,8 +47,10 @@ export function BookingWidget({
     }
   }
 
+  const weeks = breakdown ? Math.round(breakdown.nights / 7) : 0;
+
   return (
-    <div className="border border-foreground/10 bg-anthracite-800 p-7">
+    <div className="rounded-[4px] border border-foreground/10 bg-anthracite-800 p-7">
       <AvailabilityCalendar
         blockedDates={blockedDates}
         months={1}
@@ -62,13 +64,31 @@ export function BookingWidget({
       )}
 
       {breakdown && !priceError && (
-        <div className="mt-5 flex items-baseline justify-between border-t border-foreground/10 pt-5">
-          <span className="text-xs tracking-[0.16em] text-mist-600 uppercase">
-            Total
+        <div className="mt-5 border-t border-foreground/10 pt-5">
+          <span className="inline-block rounded-[3px] bg-wood-900/25 px-2 py-1 text-[10px] tracking-[0.14em] text-wood-300 uppercase">
+            {breakdown.ruleLabel}
           </span>
-          <span className="font-display text-3xl text-foreground">
-            {eur(breakdown.total)}
-          </span>
+          <div className="mt-3 flex items-baseline justify-between text-sm text-mist-500">
+            <span>
+              {eur(breakdown.pricePerNight * 7)} / semaine × {weeks} semaine
+              {weeks > 1 ? "s" : ""}
+            </span>
+            <span>{eur(breakdown.subtotal)}</span>
+          </div>
+          {breakdown.discountPercent > 0 && (
+            <div className="mt-1.5 flex items-baseline justify-between text-sm text-wood-500">
+              <span>Remise séjour long (-{breakdown.discountPercent}%)</span>
+              <span>-{eur(breakdown.subtotal - breakdown.total)}</span>
+            </div>
+          )}
+          <div className="mt-3 flex items-baseline justify-between border-t border-foreground/10 pt-3">
+            <span className="text-xs tracking-[0.16em] text-mist-600 uppercase">
+              Total
+            </span>
+            <span className="font-display text-3xl text-foreground">
+              {eur(breakdown.total)}
+            </span>
+          </div>
         </div>
       )}
 
