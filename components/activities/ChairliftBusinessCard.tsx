@@ -8,10 +8,12 @@ interface ChairliftBusinessCardProps {
 }
 
 // Hauteur d'un "wagon" (câble + siège + personnage) dans le motif répété,
-// en unités du viewBox (0 0 100 260) — un motif SVG <pattern>, pas des
-// wagons dessinés un par un, pour un défilement infini sans point de
-// bouclage à gérer.
-const TILE_HEIGHT = 130;
+// égale à la hauteur du viewBox (0 0 100 260) : un seul wagon, centré,
+// remplit la fenêtre de la carte à la fois — le suivant ne fait son
+// entrée qu'en scrollant, plutôt que d'en voir deux empilés en
+// permanence. Motif SVG <pattern>, pas des wagons dessinés un par un,
+// pour un défilement infini sans point de bouclage à gérer.
+const TILE_HEIGHT = 260;
 // Vitesse de défilement : unités de motif par pixel de scroll.
 const SCROLL_SPEED = 0.35;
 
@@ -37,7 +39,9 @@ export function ChairliftBusinessCard({ business }: ChairliftBusinessCardProps) 
     ).matches;
 
     if (reduceMotion) {
-      pattern.setAttribute("patternTransform", `translate(0, ${TILE_HEIGHT / 2})`);
+      // Le wagon est déjà centré dans la tuile (voir les coordonnées
+      // ci-dessous) : décalage nul = un wagon entier, immobile, bien cadré.
+      pattern.setAttribute("patternTransform", "translate(0, 0)");
       return;
     }
 
@@ -94,11 +98,12 @@ export function ChairliftBusinessCard({ business }: ChairliftBusinessCardProps) 
                 strokeDasharray="1 3"
               />
 
-              {/* Siège */}
-              <rect x="30" y="48" width="40" height="4" rx="2" fill="var(--color-wood-700)" />
+              {/* Siège — centré au milieu de la tuile (y=130) pour qu'un
+                  wagon entier soit bien cadré dans la fenêtre au repos. */}
+              <rect x="30" y="135" width="40" height="4" rx="2" fill="var(--color-wood-700)" />
               {/* Barre de sécurité */}
               <path
-                d="M 30 50 Q 50 58 70 50"
+                d="M 30 137 Q 50 145 70 137"
                 fill="none"
                 stroke="var(--color-wood-700)"
                 strokeWidth="2.5"
@@ -106,14 +111,14 @@ export function ChairliftBusinessCard({ business }: ChairliftBusinessCardProps) 
               />
 
               {/* Personnage, vu de face */}
-              <circle cx="50" cy="24" r="6" fill={accentColor} />
-              <rect x="41" y="28" width="18" height="18" rx="6" fill={accentColor} />
-              <line x1="41" y1="34" x2="34" y2="48" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
-              <line x1="59" y1="34" x2="66" y2="48" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
-              <line x1="44" y1="52" x2="40" y2="66" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
-              <line x1="56" y1="52" x2="60" y2="66" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
-              <circle cx="40" cy="68" r="2.2" fill="var(--color-mist-700)" />
-              <circle cx="60" cy="68" r="2.2" fill="var(--color-mist-700)" />
+              <circle cx="50" cy="111" r="6" fill={accentColor} />
+              <rect x="41" y="115" width="18" height="18" rx="6" fill={accentColor} />
+              <line x1="41" y1="121" x2="34" y2="135" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
+              <line x1="59" y1="121" x2="66" y2="135" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
+              <line x1="44" y1="139" x2="40" y2="153" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
+              <line x1="56" y1="139" x2="60" y2="153" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round" />
+              <circle cx="40" cy="155" r="2.2" fill="var(--color-mist-700)" />
+              <circle cx="60" cy="155" r="2.2" fill="var(--color-mist-700)" />
             </pattern>
           </defs>
           <rect x="0" y="0" width="100" height="260" fill={`url(#${patternId})`} />
