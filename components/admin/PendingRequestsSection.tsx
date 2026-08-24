@@ -1,12 +1,16 @@
-import {
-  confirmBookingRequest,
-  declineBookingRequest,
-} from "@/app/admin/(protected)/actions/bookingRequests";
+"use client";
+
+import { useState } from "react";
+import { declineBookingRequest } from "@/app/admin/(protected)/actions/bookingRequests";
+import { ConfirmBookingModal } from "./ConfirmBookingModal";
 import { ConfirmSubmitButton } from "./ConfirmSubmitButton";
+import { Button } from "@/components/ui/Button";
 import { formatShortDate, parseISODate } from "@/components/calendar/utils";
+import type { WeekAssignments } from "@/lib/pricing";
 import type { Database } from "@/lib/supabase/database.types";
 
 type BookingRequest = Database["public"]["Tables"]["booking_requests"]["Row"];
+type PricingRule = Database["public"]["Tables"]["pricing_rules"]["Row"];
 
 function formatReceivedAt(iso: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
@@ -15,11 +19,21 @@ function formatReceivedAt(iso: string): string {
   }).format(new Date(iso));
 }
 
+interface PendingRequestsSectionProps {
+  requests: BookingRequest[];
+  pricingRules: PricingRule[];
+  weekAssignments: WeekAssignments;
+  settings: Record<string, string>;
+}
+
 export function PendingRequestsSection({
   requests,
-}: {
-  requests: BookingRequest[];
-}) {
+  pricingRules,
+  weekAssignments,
+  settings,
+}: PendingRequestsSectionProps) {
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
   if (requests.length === 0) {
     return (
       <p className="text-sm text-mist-600">
@@ -27,6 +41,8 @@ export function PendingRequestsSection({
       </p>
     );
   }
+
+  const confirmingRequest = requests.find((r) => r.id === confirmingId) ?? null;
 
   return (
     <div className="space-y-4">
@@ -68,17 +84,13 @@ export function PendingRequestsSection({
             </p>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <ConfirmSubmitButton
-                action={confirmBookingRequest.bind(null, request.id)}
-                confirmMessage={`Confirmer la demande de ${fullName} du ${formatShortDate(
-                  parseISODate(request.start_date)
-                )} au ${formatShortDate(
-                  parseISODate(request.end_date)
-                )} ? Ces dates seront bloquées sur le calendrier.`}
+              <Button
+                type="button"
                 variant="primary"
+                onClick={() => setConfirmingId(request.id)}
               >
                 Confirmer
-              </ConfirmSubmitButton>
+              </Button>
               <ConfirmSubmitButton
                 action={declineBookingRequest.bind(null, request.id)}
                 confirmMessage={`Décliner la demande de ${fullName} ?`}
@@ -90,6 +102,14 @@ export function PendingRequestsSection({
           </div>
         );
       })}
+
+      <ConfirmBookingModal
+        request={confirmingRequest}
+        pricingRules={pricingRules}
+        weekAssignments={weekAssignments}
+        settings={settings}
+        onClose={() => setConfirmingId(null)}
+      />
     </div>
   );
 }

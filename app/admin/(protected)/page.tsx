@@ -4,6 +4,7 @@ import { PendingRequestsSection } from "@/components/admin/PendingRequestsSectio
 import { PricingCalendar } from "@/components/admin/PricingCalendar";
 import { PricingRulesSection } from "@/components/admin/PricingRulesSection";
 import { currentAdminLabel } from "@/lib/adminLabel";
+import { getSettings } from "@/lib/settings";
 import { getWeekAssignments } from "@/lib/pricingWeeks";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,6 +17,7 @@ export default async function AdminHomePage() {
     { data: pricingRules },
     { data: bookingRequestsData },
     weekAssignments,
+    settings,
   ] = await Promise.all([
     supabase
       .from("availability")
@@ -30,6 +32,7 @@ export default async function AdminHomePage() {
       .select("*")
       .order("created_at", { ascending: false }),
     getWeekAssignments(supabase),
+    getSettings(supabase),
   ]);
 
   const bookingRequests = bookingRequestsData ?? [];
@@ -49,7 +52,12 @@ export default async function AdminHomePage() {
           Demandes en attente ({pendingRequests.length})
         </h2>
         <div className="mt-4">
-          <PendingRequestsSection requests={pendingRequests} />
+          <PendingRequestsSection
+            requests={pendingRequests}
+            pricingRules={pricingRules ?? []}
+            weekAssignments={weekAssignments}
+            settings={settings}
+          />
         </div>
       </section>
 

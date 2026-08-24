@@ -10,7 +10,10 @@ import { getSettings } from "@/lib/settings";
 import { getWeekAssignments } from "@/lib/pricingWeeks";
 import { createClient } from "@/lib/supabase/server";
 
-export async function confirmBookingRequest(id: string): Promise<void> {
+export async function confirmBookingRequest(
+  id: string,
+  overrides: { adults: number; children: number; cleaningRequested: boolean }
+): Promise<void> {
   const supabase = await createClient();
   const adminLabel = await currentAdminLabel(supabase);
 
@@ -49,9 +52,18 @@ export async function confirmBookingRequest(id: string): Promise<void> {
     return;
   }
 
+  // Les adultes/enfants/ménage revus par l'admin dans la fenêtre de
+  // confirmation remplacent ceux soumis par le client — ce sont eux qui
+  // font foi pour la taxe de séjour et l'email de confirmation.
   const { error: requestError } = await supabase
     .from("booking_requests")
-    .update({ status: "confirmed", processed_by: adminLabel })
+    .update({
+      status: "confirmed",
+      processed_by: adminLabel,
+      adults: overrides.adults,
+      children: overrides.children,
+      cleaning_requested: overrides.cleaningRequested,
+    })
     .eq("id", id);
 
   if (requestError) {
@@ -61,7 +73,11 @@ export async function confirmBookingRequest(id: string): Promise<void> {
     );
   }
 
-  await sendConfirmationEmail(supabase, request);
+  await sendConfirmationEmail(supabase, {
+    ...request,
+    adults: overrides.adults,
+    cleaning_requested: overrides.cleaningRequested,
+  });
 
   revalidatePath("/admin");
   revalidatePath("/");
