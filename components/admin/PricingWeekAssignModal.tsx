@@ -14,9 +14,15 @@ interface PricingWeekAssignModalProps {
   weeks: Date[];
   rules: PricingRule[];
   pending: boolean;
-  onAssign: (ruleId: string | null) => void;
+  onAssign: (ruleId: string | null, recurYearly: boolean) => void;
   onClose: () => void;
 }
+
+// Nombre d'années (année en cours incluse) sur lesquelles une assignation
+// "récurrente" est répétée — même semaine +364 jours à chaque fois (un
+// multiple exact de 7 jours : tombe toujours un samedi, contrairement à
+// "même date l'an prochain" qui dérive du jour de la semaine).
+export const RECURRING_YEARS = 5;
 
 // Popup ouverte après un glisser sur le calendrier de tarifs : choisir le
 // tarif à appliquer aux semaines sélectionnées (ou le retirer). Même
@@ -29,8 +35,13 @@ export function PricingWeekAssignModal({
   onClose,
 }: PricingWeekAssignModalProps) {
   const [mounted, setMounted] = useState(false);
+  const [recurYearly, setRecurYearly] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (weeks.length > 0) setRecurYearly(false);
+  }, [weeks]);
 
   useEffect(() => {
     if (weeks.length === 0) return;
@@ -73,23 +84,35 @@ export function PricingWeekAssignModal({
             des semaines.
           </p>
         ) : (
-          <div className="mt-4 space-y-2">
-            {rules.map((rule) => (
-              <button
-                key={rule.id}
-                type="button"
-                disabled={pending}
-                onClick={() => onAssign(rule.id)}
-                className="flex w-full items-center gap-3 border border-foreground/15 px-3.5 py-2.5 text-left text-sm text-foreground transition-colors hover:border-wood-500 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <span
-                  className="h-3 w-3 shrink-0 rounded-sm"
-                  style={{ backgroundColor: rule.color ?? FALLBACK_COLOR }}
-                />
-                {rule.label}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="mt-4 space-y-2">
+              {rules.map((rule) => (
+                <button
+                  key={rule.id}
+                  type="button"
+                  disabled={pending}
+                  onClick={() => onAssign(rule.id, recurYearly)}
+                  className="flex w-full items-center gap-3 border border-foreground/15 px-3.5 py-2.5 text-left text-sm text-foreground transition-colors hover:border-wood-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <span
+                    className="h-3 w-3 shrink-0 rounded-sm"
+                    style={{ backgroundColor: rule.color ?? FALLBACK_COLOR }}
+                  />
+                  {rule.label}
+                </button>
+              ))}
+            </div>
+
+            <label className="mt-4 flex items-center gap-2.5 text-sm text-mist-400">
+              <input
+                type="checkbox"
+                checked={recurYearly}
+                onChange={(e) => setRecurYearly(e.target.checked)}
+                className="h-4 w-4 accent-wood-500"
+              />
+              Répéter chaque année (les {RECURRING_YEARS} prochaines années)
+            </label>
+          </>
         )}
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -97,7 +120,7 @@ export function PricingWeekAssignModal({
             type="button"
             variant="secondary"
             disabled={pending}
-            onClick={() => onAssign(null)}
+            onClick={() => onAssign(null, false)}
           >
             Retirer le tarif
           </Button>

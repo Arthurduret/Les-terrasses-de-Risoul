@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { assignPricingWeeks } from "@/app/admin/(protected)/actions/pricing";
-import { PricingWeekAssignModal } from "./PricingWeekAssignModal";
+import { PricingWeekAssignModal, RECURRING_YEARS } from "./PricingWeekAssignModal";
 import {
   WEEKDAY_LABELS,
   addMonths,
@@ -116,9 +116,23 @@ export function PricingCalendar({ rules, initialAssignments }: PricingCalendarPr
     setIsDragging(true);
   }
 
-  async function handleAssign(ruleId: string | null) {
+  async function handleAssign(ruleId: string | null, recurYearly: boolean) {
     if (!selectedWeeks) return;
-    const weekIsos = selectedWeeks.map(formatISO);
+
+    // +364 jours = exactement 52 semaines : toujours un samedi, contrairement
+    // à "même date l'an prochain" qui dérive du jour de la semaine.
+    const weeksToAssign =
+      ruleId && recurYearly
+        ? Array.from({ length: RECURRING_YEARS }, (_, year) =>
+            selectedWeeks.map((week) => {
+              const shifted = new Date(week);
+              shifted.setDate(shifted.getDate() + year * 364);
+              return shifted;
+            })
+          ).flat()
+        : selectedWeeks;
+
+    const weekIsos = weeksToAssign.map(formatISO);
     setPending(true);
 
     setAssignments((prev) => {
