@@ -14,10 +14,34 @@ const barlow = Barlow({
   weight: ["300", "400", "500", "600"],
 });
 
+const SITE_URL = "https://lesterrassesderisoul.fr";
+
 export const metadata: Metadata = {
-  title: "Les Terrasses de Risoul",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Les Terrasses de Risoul",
+    template: "%s — Les Terrasses de Risoul",
+  },
   description:
-    "Appartement au ski à Risoul — disponibilités, tarifs et demande de réservation.",
+    "Appartement au ski à Risoul 1850 — location à la semaine, à 250 m des pistes. Disponibilités, tarifs et demande de réservation en ligne.",
+  keywords: [
+    "location Risoul",
+    "appartement Risoul 1850",
+    "location vacances ski Hautes-Alpes",
+    "location saisonnière Risoul",
+  ],
+  alternates: {
+    canonical: SITE_URL,
+  },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: SITE_URL,
+    siteName: "Les Terrasses de Risoul",
+    title: "Les Terrasses de Risoul",
+    description:
+      "Appartement au ski à Risoul 1850 — location à la semaine, à 250 m des pistes.",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

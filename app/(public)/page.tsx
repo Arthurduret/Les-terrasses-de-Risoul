@@ -28,8 +28,29 @@ export default async function HomePage() {
     getWeekAssignments(supabase),
   ]);
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    name: "Les Terrasses de Risoul",
+    description:
+      "Appartement au ski à Risoul 1850 — location à la semaine, à 250 m des pistes.",
+    url: "https://lesterrassesderisoul.fr",
+    email: settings.contact_email || "reservation@lesterrassesderisoul.fr",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Risoul",
+      postalCode: "05600",
+      addressRegion: "Hautes-Alpes",
+      addressCountry: "FR",
+    },
+  };
+
   return (
     <main className="flex-1">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <AutoRefresh />
       <ScrollToTopSnowmobile />
       <section className="relative h-screen min-h-[680px] overflow-hidden border-b border-wood-700">
