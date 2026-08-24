@@ -5,6 +5,7 @@ import { eachNightInclusive, isSaturday, parseISODate } from "@/components/calen
 import { sendEmail } from "@/lib/email";
 import { bookingRequestReceivedEmail } from "@/lib/emailTemplates";
 import { getClientIp, isRateLimited } from "@/lib/rateLimit";
+import { getSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
 import { isValidEmail, isValidPhone } from "@/lib/validation";
 
@@ -117,10 +118,12 @@ export async function submitBookingRequest(
     return { error: "Impossible d'envoyer la demande, réessayez." };
   }
 
+  const settings = await getSettings(supabase);
   const { subject, html } = bookingRequestReceivedEmail({
     firstName: input.firstName.trim(),
     startDate: input.startDate,
     endDate: input.endDate,
+    contactEmail: settings.contact_email || undefined,
   });
   await sendEmail({ to: input.email.trim(), subject, html });
 

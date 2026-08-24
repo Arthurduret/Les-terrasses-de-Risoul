@@ -5,22 +5,24 @@ import { createPortal } from "react-dom";
 
 // Distance (px) au bas de la page à partir de laquelle le bouton apparaît.
 const VISIBILITY_MARGIN_PX = 400;
-// Durée de la "course" le long du tracé, jusqu'en haut de l'écran.
-const LAUNCH_DURATION_MS = 1100;
+// Un virage tous les ~430px de dénivelé, pour que le tracé reste vivant
+// même sur une page très longue plutôt que quelques grandes courbes.
+const PX_PER_SEGMENT = 430;
 
 function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-// Construit un tracé en petits virages (chicane) depuis la position du
-// bouton (bas-droite) jusqu'en haut de l'écran, recalculé à chaque
-// lancement pour s'adapter à la taille de fenêtre courante.
-function buildLaunchPath(): string {
+// Construit un tracé en petits virages (chicane) en coordonnées de
+// document (pas de viewport) : depuis le bas de la page jusqu'en haut,
+// pour que la motoneige et son tracé restent visibles au fil du défilement
+// sur (quasi) toute la hauteur de la page, pas seulement l'écran courant.
+function buildLaunchPath(docHeight: number): string {
   const right = window.innerWidth - 44;
   const left = Math.max(24, window.innerWidth - 116);
-  const bottom = window.innerHeight - 56;
-  const top = 48;
-  const segments = 5;
+  const bottom = docHeight - 70;
+  const top = 60;
+  const segments = Math.max(5, Math.round((bottom - top) / PX_PER_SEGMENT));
 
   const points: { x: number; y: number }[] = [];
   for (let i = 0; i <= segments; i++) {
@@ -107,6 +109,7 @@ export function ScrollToTopSnowmobile() {
   const [visible, setVisible] = useState(false);
   const [launching, setLaunching] = useState(false);
   const [pathD, setPathD] = useState("");
+  const [docHeight, setDocHeight] = useState(0);
   const [mounted, setMounted] = useState(false);
   const pathRef = useRef<SVGPathElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -143,7 +146,11 @@ export function ScrollToTopSnowmobile() {
     };
   }, []);
 
-  // Course le long du tracé une fois le clone monté (pathRef prêt).
+  // Course le long du tracé une fois le clone monté (pathRef prêt) : un seul
+  // rAF pilote à la fois le tracé (stroke-dashoffset), la position de la
+  // motoneige le long du chemin ET le défilement réel de la page (scrollTo
+  // manuel plutôt que "smooth" natif) — tout reste parfaitement synchronisé
+  // sur la même progression, même sur une page très longue.
   useEffect(() => {
     if (!launching) return;
     const path = pathRef.current;
@@ -154,13 +161,16 @@ export function ScrollToTopSnowmobile() {
     path.style.strokeDasharray = String(length);
     path.style.strokeDashoffset = String(length);
 
+    const startScrollY = window.scrollY;
+    const duration = Math.min(2600, Math.max(1200, startScrollY * 0.3));
     let raf = 0;
     const start = performance.now();
 
     function frame(now: number) {
-      const t = Math.min(1, (now - start) / LAUNCH_DURATION_MS);
+      const t = Math.min(1, (now - start) / duration);
       const eased = easeInOutCubic(t);
 
+      window.scrollTo(0, startScrollY * (1 - eased));
       path!.style.strokeDashoffset = String(length * (1 - eased));
 
       const at = length * eased;
@@ -182,9 +192,12 @@ export function ScrollToTopSnowmobile() {
 
   function scrollToTop() {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
-    if (reduceMotion || launching) return;
-    setPathD(buildLaunchPath());
+    if (reduceMotion || launching) {
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+      return;
+    }
+    setDocHeight(document.documentElement.scrollHeight);
+    setPathD(buildLaunchPath(document.documentElement.scrollHeight));
     setLaunching(true);
   }
 
@@ -206,7 +219,11 @@ export function ScrollToTopSnowmobile() {
       {mounted &&
         launching &&
         createPortal(
-          <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="true">
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 z-40"
+            style={{ height: docHeight }}
+            aria-hidden="true"
+          >
             <svg className="h-full w-full">
               <path
                 ref={pathRef}

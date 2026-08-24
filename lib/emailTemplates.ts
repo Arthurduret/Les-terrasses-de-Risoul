@@ -43,8 +43,9 @@ export function bookingRequestReceivedEmail(params: {
   firstName: string;
   startDate: string;
   endDate: string;
+  contactEmail?: string;
 }): { subject: string; html: string } {
-  const { firstName, startDate, endDate } = params;
+  const { firstName, startDate, endDate, contactEmail } = params;
   return {
     subject: "Votre demande de réservation — Les Terrasses de Risoul",
     html: wrapper(`
@@ -60,6 +61,13 @@ export function bookingRequestReceivedEmail(params: {
       <p style="margin:24px 0 0;font-size:13px;color:#8e8880;">
         Réponse rapide · Aucun frais de dossier
       </p>
+      ${
+        contactEmail
+          ? `<p style="margin:16px 0 0;font-size:13px;color:#8e8880;">
+              Une question ? Écrivez-nous à ${escapeHtml(contactEmail)}.
+            </p>`
+          : ""
+      }
     `),
   };
 }

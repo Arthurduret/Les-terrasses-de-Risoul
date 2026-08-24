@@ -119,6 +119,11 @@ export function getMonthMatrix(monthDate: Date): (Date | null)[][] {
   return weeks;
 }
 
+// Ne vérifie que les nuits réellement occupées par le séjour (arrivée
+// jusqu'à la veille du départ), pas la date de départ elle-même : comme
+// pour eachNightInclusive, le jour de départ (check-out ~11h) peut déjà
+// être bloqué par l'arrivée d'un autre client (check-in ~15h) sans que ça
+// invalide cette sélection.
 export function rangeHasBlockedDay(
   start: Date,
   end: Date,
@@ -126,26 +131,9 @@ export function rangeHasBlockedDay(
 ): boolean {
   const cursor = startOfDay(start);
   const last = startOfDay(end);
-  while (cursor.getTime() <= last.getTime()) {
+  while (cursor.getTime() < last.getTime()) {
     if (blockedDates.has(formatISO(cursor))) return true;
     cursor.setDate(cursor.getDate() + 1);
   }
   return false;
-}
-
-// Premier jour indisponible strictement après `start`, sur un horizon de 2 ans.
-export function firstBlockedAfter(
-  start: Date,
-  blockedDates: Set<string>
-): Date | null {
-  const cursor = startOfDay(start);
-  cursor.setDate(cursor.getDate() + 1);
-  const horizon = new Date(start);
-  horizon.setFullYear(horizon.getFullYear() + 2);
-
-  while (cursor.getTime() <= horizon.getTime()) {
-    if (blockedDates.has(formatISO(cursor))) return new Date(cursor);
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return null;
 }

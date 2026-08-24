@@ -5,7 +5,6 @@ import { PhotoGallery } from "@/components/gallery/PhotoGallery";
 import { BookingRequestModal } from "./BookingRequestModal";
 import {
   addMonths,
-  firstBlockedAfter,
   formatISO,
   formatMonthLabel,
   formatShortDate,
@@ -129,20 +128,32 @@ export function ReservationExact({
 
   const canGoPrev = visibleMonth.getTime() > firstMonth.getTime();
 
+  // Un jour bloqué peut quand même devenir la date de DÉPART choisie pour
+  // le séjour en cours de sélection : c'est justement le jour d'arrivée
+  // d'un autre client (check-out ~11h, check-in du suivant ~15h le même
+  // jour). Seule une nuit réellement occupée entre l'arrivée et ce
+  // candidat (rangeHasBlockedDay, qui exclut déjà la date de fin) doit
+  // invalider le choix — pas le statut du jour de fin lui-même.
+  function isDayUnavailable(date: Date): boolean {
+    if (date.getTime() < today.getTime()) return true;
+    const pickingEnd =
+      !!selectionStart && !selectionEnd && date.getTime() > selectionStart.getTime();
+    if (pickingEnd) {
+      return rangeHasBlockedDay(selectionStart!, date, blockedSet);
+    }
+    return blockedSet.has(formatISO(date));
+  }
+
   const previewEnd = useMemo(() => {
     if (!selectionStart || selectionEnd || !hoverDate) return null;
     if (!isSaturday(hoverDate)) return null;
     if (hoverDate.getTime() <= selectionStart.getTime()) return null;
-    const nextBlocked = firstBlockedAfter(selectionStart, blockedSet);
-    if (nextBlocked && nextBlocked.getTime() <= hoverDate.getTime()) return null;
+    if (isDayUnavailable(hoverDate)) return null;
     return hoverDate;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectionStart, selectionEnd, hoverDate, blockedSet]);
 
   const rangeEnd = selectionEnd ?? previewEnd;
-
-  function isDayUnavailable(date: Date) {
-    return date.getTime() < today.getTime() || blockedSet.has(formatISO(date));
-  }
 
   // Séjours à la semaine, du samedi au samedi uniquement : seul un samedi
   // peut devenir arrivée ou départ.
@@ -156,11 +167,6 @@ export function ReservationExact({
     }
     if (date.getTime() <= selectionStart.getTime()) {
       setSelectionStart(date);
-      return;
-    }
-    if (rangeHasBlockedDay(selectionStart, date, blockedSet)) {
-      setSelectionStart(date);
-      setSelectionEnd(null);
       return;
     }
     setSelectionEnd(date);

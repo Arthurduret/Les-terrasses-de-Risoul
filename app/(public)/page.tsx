@@ -137,7 +137,15 @@ export default async function HomePage() {
             </h2>
             <p className="mt-4 max-w-md text-base leading-relaxed text-mist-500">
               Pour réserver, choisissez vos dates dans le calendrier
-              ci-dessus. Pour toute autre question, écrivez-nous directement.
+              ci-dessus. Pour toute autre question, écrivez-nous directement
+              à{" "}
+              <a
+                href={`mailto:${settings.contact_email || "reservation@lesterrassesderisoul.fr"}`}
+                className="text-wood-500 underline underline-offset-2 hover:text-wood-300"
+              >
+                {settings.contact_email || "reservation@lesterrassesderisoul.fr"}
+              </a>
+              .
             </p>
           </Reveal>
         </Container>
