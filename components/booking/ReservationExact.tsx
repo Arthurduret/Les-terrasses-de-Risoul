@@ -42,7 +42,7 @@ const STYLE = `
 .ltr-left{flex:1 1 520px;min-width:min(100%,420px)}
 .ltr-kicker{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:#C79267;margin-bottom:16px}
 .ltr-h2{font-family:var(--font-display),'Cormorant Garamond',serif;font-weight:500;font-size:clamp(34px,4.2vw,52px);line-height:1.1;margin:0 0 34px}
-.ltr-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 24px;margin-top:34px;padding-top:30px;border-top:1px solid rgba(237,231,223,.12);font-size:15px;color:#B7AFA4}
+.ltr-facts{display:flex;flex-wrap:nowrap;justify-content:center;align-items:center;gap:22px;margin-top:34px;padding-top:30px;border-top:1px solid rgba(237,231,223,.12);font-size:15px;color:#B7AFA4;white-space:nowrap}
 .ltr-desc{margin-top:34px;padding-top:30px;border-top:1px solid rgba(237,231,223,.12)}
 .ltr-desc h3{font-family:var(--font-display),'Cormorant Garamond',serif;font-weight:500;font-size:22px;margin:0 0 14px;color:#EDE7DF}
 .ltr-desc p{font-size:15px;line-height:1.75;color:#B7AFA4;margin:0}
