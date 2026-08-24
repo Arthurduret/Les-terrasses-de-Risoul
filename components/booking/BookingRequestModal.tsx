@@ -22,6 +22,7 @@ interface BookingRequestModalProps {
   settings: Record<string, string>;
   defaultAdults?: number;
   defaultChildren?: number;
+  defaultCleaningRequested?: boolean;
   onClose: () => void;
 }
 
@@ -81,6 +82,7 @@ export function BookingRequestModal({
   settings,
   defaultAdults,
   defaultChildren,
+  defaultCleaningRequested,
   onClose,
 }: BookingRequestModalProps) {
   const [mounted, setMounted] = useState(false);
@@ -101,15 +103,19 @@ export function BookingRequestModal({
 
   useEffect(() => setMounted(true), []);
 
-  // Pré-remplit adultes/enfants avec le compteur du widget à chaque
-  // ouverture — reste modifiable ici avant l'envoi de la demande.
+  // Pré-remplit adultes/enfants/ménage avec les choix faits dans le widget
+  // à chaque ouverture — reste modifiable ici avant l'envoi de la demande.
   useEffect(() => {
     if (!startDate) return;
-    if (defaultChildren === undefined && defaultAdults === undefined) return;
-    const nextChildren = Math.min(MAX_OCCUPANTS - 1, Math.max(0, defaultChildren ?? 0));
-    const nextAdults = Math.min(MAX_OCCUPANTS - nextChildren, Math.max(1, defaultAdults ?? 1));
-    setChildren(nextChildren);
-    setAdults(nextAdults);
+    if (defaultChildren !== undefined || defaultAdults !== undefined) {
+      const nextChildren = Math.min(MAX_OCCUPANTS - 1, Math.max(0, defaultChildren ?? 0));
+      const nextAdults = Math.min(MAX_OCCUPANTS - nextChildren, Math.max(1, defaultAdults ?? 1));
+      setChildren(nextChildren);
+      setAdults(nextAdults);
+    }
+    if (defaultCleaningRequested !== undefined) {
+      setCleaningRequested(defaultCleaningRequested);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate]);
 

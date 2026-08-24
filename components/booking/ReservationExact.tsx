@@ -114,7 +114,10 @@ export function ReservationExact({
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [cleaningRequested, setCleaningRequested] = useState(true);
   const [requestOpen, setRequestOpen] = useState(false);
+
+  const cleaningFeeSetting = Number(settings.cleaning_fee ?? 0) || 0;
 
   const canGoPrev = visibleMonth.getTime() > firstMonth.getTime();
 
@@ -161,8 +164,8 @@ export function ReservationExact({
     try {
       grandTotal = calculateGrandTotal(selectionStart, selectionEnd, pricingRules, weekAssignments, {
         adults,
-        cleaningRequested: true,
-        cleaningFee: Number(settings.cleaning_fee ?? 0) || 0,
+        cleaningRequested,
+        cleaningFee: cleaningFeeSetting,
         touristTaxPerPersonPerNight: Number(settings.tourist_tax_per_person_per_night ?? 0) || 0,
       });
     } catch (err) {
@@ -364,10 +367,18 @@ export function ReservationExact({
                 </span>
                 <b>{nights ? `${nights} nuit${nights > 1 ? "s" : ""}` : "—"}</b>
               </div>
-              {grandTotal && grandTotal.cleaningFee > 0 && (
+              {grandTotal && cleaningFeeSetting > 0 && (
                 <div>
-                  <span>Ménage de fin de séjour</span>
-                  <b>{eur(grandTotal.cleaningFee)}</b>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={cleaningRequested}
+                      onChange={(e) => setCleaningRequested(e.target.checked)}
+                      style={{ width: 14, height: 14, accentColor: "#C79267" }}
+                    />
+                    <span>Ménage de fin de séjour</span>
+                  </label>
+                  <b>{cleaningRequested ? eur(cleaningFeeSetting) : "—"}</b>
                 </div>
               )}
               {grandTotal && grandTotal.touristTax > 0 && (
@@ -419,6 +430,7 @@ export function ReservationExact({
         settings={settings}
         defaultAdults={adults}
         defaultChildren={children}
+        defaultCleaningRequested={cleaningRequested}
         onClose={() => setRequestOpen(false)}
       />
     </section>
