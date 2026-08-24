@@ -238,11 +238,11 @@ export function ConfirmBookingModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4 py-10"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-3 py-6 sm:p-4 sm:py-10"
       onClick={() => !pending && onClose()}
     >
       <div
-        className="w-full max-w-lg border border-foreground/15 bg-anthracite-800 p-6 sm:p-8"
+        className="max-h-[88vh] w-full max-w-lg overflow-y-auto border border-foreground/15 bg-anthracite-800 p-5 sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <p className="font-display text-2xl text-foreground">Confirmer la réservation</p>
