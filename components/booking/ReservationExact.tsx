@@ -42,7 +42,11 @@ const STYLE = `
 .ltr-left{flex:1 1 520px;min-width:min(100%,420px)}
 .ltr-kicker{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:#C79267;margin-bottom:16px}
 .ltr-h2{font-family:var(--font-display),'Cormorant Garamond',serif;font-weight:500;font-size:clamp(34px,4.2vw,52px);line-height:1.1;margin:0 0 34px}
-.ltr-facts{display:flex;flex-wrap:wrap;gap:14px 40px;margin-top:34px;padding-top:30px;border-top:1px solid rgba(237,231,223,.12);font-size:15px;color:#B7AFA4}
+.ltr-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 24px;margin-top:34px;padding-top:30px;border-top:1px solid rgba(237,231,223,.12);font-size:15px;color:#B7AFA4}
+.ltr-desc{margin-top:34px;padding-top:30px;border-top:1px solid rgba(237,231,223,.12)}
+.ltr-desc h3{font-family:var(--font-display),'Cormorant Garamond',serif;font-weight:500;font-size:22px;margin:0 0 14px;color:#EDE7DF}
+.ltr-desc p{font-size:15px;line-height:1.75;color:#B7AFA4;margin:0}
+.ltr-desc p+p{margin-top:14px}
 .ltr-aside{flex:0 1 388px;min-width:min(100%,320px);position:sticky;top:24px}
 .ltr-card{background:#141416;border:1px solid rgba(237,231,223,.12);border-radius:4px;padding:26px}
 .ltr-price{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:22px;min-height:38px}
@@ -200,6 +204,22 @@ export function ReservationExact({
             <span>2 salles de bain</span>
             <span>Terrasse 8 m² plein ouest</span>
             <span>Casier à ski</span>
+          </div>
+
+          <div className="ltr-desc">
+            <h3>L&apos;appartement en quelques mots</h3>
+            <p>
+              Niché à 250 mètres des pistes de Risoul, cet appartement chaleureux
+              allie bois clair et grands volumes pour des séjours en famille ou
+              entre amis. La terrasse plein ouest profite des lumières de fin de
+              journée sur les sommets environnants.
+            </p>
+            <p>
+              Deux chambres, un coin montagne et un dortoir permettent d&apos;accueillir
+              jusqu&apos;à 12 personnes, avec deux salles de bain pour plus de confort.
+              Le casier à ski à l&apos;entrée facilite les journées sur les pistes,
+              retour skis aux pieds.
+            </p>
           </div>
         </div>
 
