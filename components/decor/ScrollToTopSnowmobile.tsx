@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-// Distance (px) au bas de la page à partir de laquelle le bouton apparaît.
-const VISIBILITY_MARGIN_PX = 400;
+// Distance (px) défilée depuis le haut à partir de laquelle le bouton
+// apparaît — disponible dès le milieu de page, pas seulement tout en bas.
+const SHOW_AFTER_PX = 480;
 // Un virage tous les ~430px de dénivelé, pour que le tracé reste vivant
-// même sur une page très longue plutôt que quelques grandes courbes.
+// même sur une longue distance plutôt que quelques grandes courbes.
 const PX_PER_SEGMENT = 430;
 
 function easeInOutCubic(t: number): number {
@@ -14,15 +15,17 @@ function easeInOutCubic(t: number): number {
 }
 
 // Construit un tracé en petits virages (chicane) en coordonnées de
-// document (pas de viewport) : depuis le bas de la page jusqu'en haut,
-// pour que la motoneige et son tracé restent visibles au fil du défilement
-// sur (quasi) toute la hauteur de la page, pas seulement l'écran courant.
-function buildLaunchPath(docHeight: number): string {
+// document (pas de viewport), ancré sur la position réelle du bouton au
+// moment du clic (`startY`, en coordonnées document) jusqu'en haut de la
+// page — sans ça, sur une page très longue cliquée depuis le milieu, le
+// tracé partait du bas du document au lieu de la position du bouton et la
+// motoneige "sautait" avant de remonter.
+function buildLaunchPath(startY: number): string {
   const right = window.innerWidth - 44;
   const left = Math.max(24, window.innerWidth - 116);
-  const bottom = docHeight - 70;
+  const bottom = startY;
   const top = 60;
-  const segments = Math.max(5, Math.round((bottom - top) / PX_PER_SEGMENT));
+  const segments = Math.max(3, Math.round((bottom - top) / PX_PER_SEGMENT));
 
   const points: { x: number; y: number }[] = [];
   for (let i = 0; i <= segments; i++) {
@@ -109,7 +112,7 @@ export function ScrollToTopSnowmobile() {
   const [visible, setVisible] = useState(false);
   const [launching, setLaunching] = useState(false);
   const [pathD, setPathD] = useState("");
-  const [docHeight, setDocHeight] = useState(0);
+  const [overlayHeight, setOverlayHeight] = useState(0);
   const [mounted, setMounted] = useState(false);
   const pathRef = useRef<SVGPathElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -122,10 +125,7 @@ export function ScrollToTopSnowmobile() {
     let ticking = false;
 
     function update() {
-      const doc = document.documentElement;
-      const nearBottom =
-        window.scrollY + window.innerHeight >= doc.scrollHeight - VISIBILITY_MARGIN_PX;
-      setVisible(nearBottom);
+      setVisible(window.scrollY > SHOW_AFTER_PX);
     }
 
     function handleScroll() {
@@ -196,8 +196,11 @@ export function ScrollToTopSnowmobile() {
       window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
       return;
     }
-    setDocHeight(document.documentElement.scrollHeight);
-    setPathD(buildLaunchPath(document.documentElement.scrollHeight));
+    // Position réelle (document) du bouton au moment du clic — ni la
+    // taille de la page, ni la position de scroll ne sont supposées.
+    const startY = window.scrollY + window.innerHeight - 56;
+    setOverlayHeight(startY + 40);
+    setPathD(buildLaunchPath(startY));
     setLaunching(true);
   }
 
@@ -221,7 +224,7 @@ export function ScrollToTopSnowmobile() {
         createPortal(
           <div
             className="pointer-events-none absolute inset-x-0 top-0 z-40"
-            style={{ height: docHeight }}
+            style={{ height: overlayHeight }}
             aria-hidden="true"
           >
             <svg className="h-full w-full">
