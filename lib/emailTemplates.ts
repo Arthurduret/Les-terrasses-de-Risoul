@@ -26,14 +26,25 @@ function formatDateFr(iso: string): string {
   }).format(new Date(year, month - 1, day));
 }
 
+// Pas de logo image : les logos SVG passent mal (voire disparaissent) sur
+// Gmail/Outlook, et un logo image bloqué par le client mail (cadre vide,
+// icône cassée) inquiète davantage qu'un bandeau texte propre. On reprend
+// à la place la mise en forme du vrai logo (Logo.tsx) — "Les Terrasses" /
+// "DE RISOUL" — pour rester reconnaissable et cohérent avec le site.
 function wrapper(bodyHtml: string): string {
   return `
     <div style="background:#0b0b0c;padding:32px 16px;font-family:Georgia,'Times New Roman',serif;color:#ede7df;">
       <div style="max-width:520px;margin:0 auto;background:#141416;border:1px solid rgba(237,231,223,0.1);padding:32px;">
-        <p style="margin:0 0 24px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#c79267;">
-          Les Terrasses de Risoul
-        </p>
+        <div style="text-align:center;padding-bottom:20px;margin-bottom:24px;border-bottom:1px solid rgba(237,231,223,0.12);">
+          <div style="font-size:22px;letter-spacing:0.03em;color:#ede7df;">Les Terrasses</div>
+          <div style="margin-top:5px;font-size:11px;letter-spacing:0.35em;text-transform:uppercase;color:#c79267;">
+            de Risoul
+          </div>
+        </div>
         ${bodyHtml}
+        <p style="margin:28px 0 0;padding-top:16px;border-top:1px solid rgba(237,231,223,0.1);font-size:11px;color:#6f6a64;">
+          Cet email provient du site lesterrassesderisoul.fr — vous le recevez suite à une action effectuée sur ce site.
+        </p>
       </div>
     </div>
   `;
