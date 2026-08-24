@@ -7,7 +7,7 @@ import {
   type ConfirmBookingOverrides,
 } from "@/app/admin/(protected)/actions/bookingRequests";
 import { Button } from "@/components/ui/Button";
-import { formatISO, isSaturday, parseISODate } from "@/components/calendar/utils";
+import { formatISO, parseISODate } from "@/components/calendar/utils";
 import { calculateGrandTotal, type WeekAssignments } from "@/lib/pricing";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -171,7 +171,10 @@ export function ConfirmBookingModal({
 
   const start = parseISODate(startDateInput);
   const end = parseISODate(endDateInput);
-  const datesValid = isSaturday(start) && isSaturday(end) && end.getTime() > start.getTime();
+  // Contrairement au site public, l'admin peut confirmer des dates hors
+  // samedi-samedi (séjour exceptionnel, arrangement particulier) — seule
+  // règle : le départ doit être après l'arrivée.
+  const datesValid = startDateInput !== "" && endDateInput !== "" && end.getTime() > start.getTime();
   const nights = datesValid ? Math.round((end.getTime() - start.getTime()) / 86400000) : 0;
   const weeks = nights / 7;
 
@@ -181,7 +184,7 @@ export function ConfirmBookingModal({
   let grandTotal: ReturnType<typeof calculateGrandTotal> | null = null;
   let dateError: string | null = null;
   if (!datesValid) {
-    dateError = "Les séjours se réservent du samedi au samedi.";
+    dateError = "La date de départ doit être après la date d'arrivée.";
   } else {
     try {
       grandTotal = calculateGrandTotal(start, end, pricingRules, weekAssignments, {

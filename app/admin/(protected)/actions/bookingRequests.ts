@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eachNightInclusive, isSaturday, parseISODate } from "@/components/calendar/utils";
+import { eachNightInclusive, parseISODate } from "@/components/calendar/utils";
 import { currentAdminLabel } from "@/lib/adminLabel";
 import { sendEmail } from "@/lib/email";
 import { bookingConfirmedEmail } from "@/lib/emailTemplates";
@@ -52,10 +52,13 @@ export async function confirmBookingRequest(
     return { error: "Impossible de charger la demande à confirmer." };
   }
 
+  // Contrairement au formulaire public, l'admin peut confirmer des dates
+  // hors samedi-samedi (séjour exceptionnel) — seule règle : le départ
+  // doit être après l'arrivée (voir la contrainte en base côté migration).
   const start = parseISODate(overrides.startDate);
   const end = parseISODate(overrides.endDate);
-  if (!isSaturday(start) || !isSaturday(end) || end.getTime() <= start.getTime()) {
-    return { error: "Les séjours se réservent du samedi au samedi." };
+  if (end.getTime() <= start.getTime()) {
+    return { error: "La date de départ doit être après la date d'arrivée." };
   }
 
   const fullName = `${request.first_name} ${request.last_name}`;

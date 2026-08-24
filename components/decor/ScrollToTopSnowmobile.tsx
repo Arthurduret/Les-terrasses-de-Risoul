@@ -6,9 +6,11 @@ import { createPortal } from "react-dom";
 // Distance (px) défilée depuis le haut à partir de laquelle le bouton
 // apparaît — disponible dès le milieu de page, pas seulement tout en bas.
 const SHOW_AFTER_PX = 480;
-// Un virage tous les ~430px de dénivelé, pour que le tracé reste vivant
-// même sur une longue distance plutôt que quelques grandes courbes.
-const PX_PER_SEGMENT = 430;
+// Un virage tous les ~900px de dénivelé, plafonné à 8 : sur une longue
+// page, trop de petits virages rapprochés se lisaient comme un fouillis
+// de vagues superposées plutôt qu'un tracé net.
+const PX_PER_SEGMENT = 900;
+const MAX_SEGMENTS = 8;
 
 function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -25,7 +27,7 @@ function buildLaunchPath(startY: number): string {
   const left = Math.max(24, window.innerWidth - 116);
   const bottom = startY;
   const top = 60;
-  const segments = Math.max(3, Math.round((bottom - top) / PX_PER_SEGMENT));
+  const segments = Math.max(3, Math.min(MAX_SEGMENTS, Math.round((bottom - top) / PX_PER_SEGMENT)));
 
   const points: { x: number; y: number }[] = [];
   for (let i = 0; i <= segments; i++) {
@@ -113,6 +115,7 @@ export function ScrollToTopSnowmobile() {
   const [launching, setLaunching] = useState(false);
   const [pathD, setPathD] = useState("");
   const [overlayHeight, setOverlayHeight] = useState(0);
+  const [launchId, setLaunchId] = useState(0);
   const [mounted, setMounted] = useState(false);
   const pathRef = useRef<SVGPathElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -201,6 +204,7 @@ export function ScrollToTopSnowmobile() {
     const startY = window.scrollY + window.innerHeight - 56;
     setOverlayHeight(startY + 40);
     setPathD(buildLaunchPath(startY));
+    setLaunchId((id) => id + 1);
     setLaunching(true);
   }
 
@@ -223,6 +227,7 @@ export function ScrollToTopSnowmobile() {
         launching &&
         createPortal(
           <div
+            key={launchId}
             className="pointer-events-none absolute inset-x-0 top-0 z-40"
             style={{ height: overlayHeight }}
             aria-hidden="true"
