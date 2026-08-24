@@ -1,10 +1,9 @@
 import { Resend } from "resend";
 
-// Domaine pas encore vérifié dans Resend : onboarding@resend.dev
-// fonctionne sans configuration DNS. À remplacer par une adresse sur
-// lesterrassesderisoul.fr (ex. RESEND_FROM_EMAIL="Les Terrasses de
-// Risoul <reservations@lesterrassesderisoul.fr>") une fois le domaine
-// vérifié dans le dashboard Resend — un seul réglage à changer.
+// onboarding@resend.dev en repli si RESEND_FROM_EMAIL n'est pas défini
+// (n'envoie qu'à l'adresse du compte Resend — utile en local sans domaine
+// vérifié). lesterrassesderisoul.fr est vérifié dans Resend, voir
+// .env.local.example.
 const FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL ?? "Les Terrasses de Risoul <onboarding@resend.dev>";
 
