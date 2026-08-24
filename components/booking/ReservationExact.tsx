@@ -46,7 +46,11 @@ const STYLE = `
 .ltr-desc{margin-top:34px;padding-top:30px;border-top:1px solid rgba(237,231,223,.12)}
 .ltr-desc h3{font-family:var(--font-display),'Cormorant Garamond',serif;font-weight:500;font-size:22px;margin:0 0 14px;color:#EDE7DF}
 .ltr-desc p{font-size:15px;line-height:1.75;color:#B7AFA4;margin:0}
-.ltr-desc p+p{margin-top:14px}
+.ltr-desc p+p,.ltr-desc ul+p{margin-top:14px}
+.ltr-desc ul{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+.ltr-desc li{position:relative;padding-left:18px;font-size:15px;line-height:1.75;color:#B7AFA4}
+.ltr-desc li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:#C79267}
+.ltr-desc li b{color:#EDE7DF;font-weight:500}
 .ltr-aside{flex:0 1 388px;min-width:min(100%,320px);position:sticky;top:24px}
 .ltr-card{background:#141416;border:1px solid rgba(237,231,223,.12);border-radius:4px;padding:26px}
 .ltr-price{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:22px;min-height:38px}
@@ -195,7 +199,7 @@ export function ReservationExact({
       <div className="ltr-wrap">
         <div className="ltr-left">
           <p className="ltr-kicker">L&apos;appartement</p>
-          <h2 className="ltr-h2">72 m² de bois et de lumière</h2>
+          <h2 className="ltr-h2">63 m² de bois et de lumière</h2>
           <PhotoGallery />
           <div className="ltr-facts">
             <span>2 chambres</span>
@@ -209,16 +213,46 @@ export function ReservationExact({
           <div className="ltr-desc">
             <h3>L&apos;appartement en quelques mots</h3>
             <p>
-              Niché à 250 mètres des pistes de Risoul, cet appartement chaleureux
-              allie bois clair et grands volumes pour des séjours en famille ou
-              entre amis. La terrasse plein ouest profite des lumières de fin de
-              journée sur les sommets environnants.
+              Nous louons notre appartement dans une nouvelle résidence sur la
+              station de Risoul 1850, situé juste derrière l&apos;Office du Tourisme, à
+              proximité des pistes (150m du TK de Pelinche &amp; 200m du Front de
+              Neige pour tous les départs des TS).
             </p>
             <p>
-              Deux chambres, un coin montagne et un dortoir permettent d&apos;accueillir
-              jusqu&apos;à 12 personnes, avec deux salles de bain pour plus de confort.
-              Le casier à ski à l&apos;entrée facilite les journées sur les pistes,
-              retour skis aux pieds.
+              Cet appartement de type triplex est flambant neuf, dans résidence
+              toute neuve depuis décembre 2024.
+            </p>
+            <p>
+              Il est entièrement équipé et contient 10/12 couchages pour convenir
+              parfaitement à 2/3 familles avec enfants.
+            </p>
+            <p>Voici la répartition de l&apos;appartement :</p>
+            <ul>
+              <li>
+                <b>1er étage</b> : 1 buanderie avec WC et équipé d&apos;une penderie à
+                chaussures de ski pour garder au chaud, 1 salle de bain, 1 cuisine
+                entièrement équipée (combi frigo/congélo, four &amp; plaques
+                induction, lave-vaisselle, robot de cuisine, machine à café moulu,
+                appareil à fondue &amp; raclette) ouverte sur salon avec canapé
+                d&apos;angle et TV, 1 balcon de 8m² avec table extérieure et vue sur
+                la vallée.
+              </li>
+              <li>
+                <b>2ème étage</b> : 2 chambres avec chacune 1 lit double, 1 coin
+                montagne avec 1 clic-clac convertible en 1 lit double &amp; TV, 1
+                salle de bain avec WC. (1 second balcon est présent mais pas
+                encore fonctionnel et donc pas accessible).
+              </li>
+              <li>
+                <b>3ème étage</b> : Mezzanine de 15m² équipé de 2 lits doubles
+                superposés (soit 4 lits doubles) pour dortoir enfants ou
+                adolescents, et nombreux rangements pour poser ses affaires.
+              </li>
+            </ul>
+            <p>
+              Sur le palier de l&apos;appartement (même étage), accès à un casier à
+              ski &amp; accès direct à l&apos;extérieur pour rejoindre le front de
+              neige.
             </p>
           </div>
         </div>
