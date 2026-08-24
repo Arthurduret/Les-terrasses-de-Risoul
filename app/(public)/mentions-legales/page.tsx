@@ -16,9 +16,9 @@ export default function MentionsLegalesPage() {
           <section>
             <h2 className="font-display text-xl text-foreground">Éditeur du site</h2>
             <p className="mt-2">
-              Le site lesterrassesderisoul.fr est édité par [Prénom NOM — à compléter], loueur en
-              meublé non professionnel (LMNP), domicilié à [adresse complète — à compléter],
-              Risoul (05600), Hautes-Alpes, France.
+              Le site lesterrassesderisoul.fr est édité par [Prénom NOM — à compléter],
+              particulier, domicilié à [adresse complète — à compléter], Risoul (05600),
+              Hautes-Alpes, France.
             </p>
             <p className="mt-2">
               Contact :{" "}
