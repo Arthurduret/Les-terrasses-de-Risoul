@@ -69,6 +69,7 @@ export type Database = {
           adults: number
           children: number
           city: string
+          cleaning_fee_override: number | null
           cleaning_requested: boolean
           created_at: string
           email: string
@@ -82,12 +83,15 @@ export type Database = {
           processed_by: string | null
           start_date: string
           status: string
+          stay_price_override: number | null
+          tourist_tax_override: number | null
         }
         Insert: {
           address: string
           adults?: number
           children?: number
           city: string
+          cleaning_fee_override?: number | null
           cleaning_requested?: boolean
           created_at?: string
           email: string
@@ -101,12 +105,15 @@ export type Database = {
           processed_by?: string | null
           start_date: string
           status?: string
+          stay_price_override?: number | null
+          tourist_tax_override?: number | null
         }
         Update: {
           address?: string
           adults?: number
           children?: number
           city?: string
+          cleaning_fee_override?: number | null
           cleaning_requested?: boolean
           created_at?: string
           email?: string
@@ -120,6 +127,8 @@ export type Database = {
           processed_by?: string | null
           start_date?: string
           status?: string
+          stay_price_override?: number | null
+          tourist_tax_override?: number | null
         }
         Relationships: []
       }

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eachNightInclusive, parseISODate } from "@/components/calendar/utils";
+import { eachNightInclusive, isSaturday, parseISODate } from "@/components/calendar/utils";
 import { currentAdminLabel } from "@/lib/adminLabel";
 import { sendEmail } from "@/lib/email";
 import { bookingConfirmedEmail } from "@/lib/emailTemplates";
@@ -10,10 +10,31 @@ import { getSettings } from "@/lib/settings";
 import { getWeekAssignments } from "@/lib/pricingWeeks";
 import { createClient } from "@/lib/supabase/server";
 
+function eur(amount: number): string {
+  return `${Math.round(amount).toLocaleString("fr-FR")} €`;
+}
+
+export interface ConfirmBookingOverrides {
+  startDate: string;
+  endDate: string;
+  adults: number;
+  children: number;
+  cleaningRequested: boolean;
+  // null = valeur calculée normalement conservée (voir sendConfirmationEmail).
+  stayPriceOverride: number | null;
+  cleaningFeeOverride: number | null;
+  touristTaxOverride: number | null;
+}
+
+// Revue et confirmation d'une demande : les dates, adultes/enfants,
+// ménage et prix (séjour/ménage/taxe, chacun remplaçable individuellement
+// — ex. tarif négocié) affichés dans la fenêtre de confirmation
+// remplacent ceux soumis par le client, et ce sont eux qui font foi pour
+// bloquer les dates et pour l'email de confirmation.
 export async function confirmBookingRequest(
   id: string,
-  overrides: { adults: number; children: number; cleaningRequested: boolean }
-): Promise<void> {
+  overrides: ConfirmBookingOverrides
+): Promise<{ error: string | null }> {
   const supabase = await createClient();
   const adminLabel = await currentAdminLabel(supabase);
 
@@ -28,12 +49,33 @@ export async function confirmBookingRequest(
       "Impossible de charger la demande à confirmer :",
       requestFetchError?.message
     );
-    return;
+    return { error: "Impossible de charger la demande à confirmer." };
+  }
+
+  const start = parseISODate(overrides.startDate);
+  const end = parseISODate(overrides.endDate);
+  if (!isSaturday(start) || !isSaturday(end) || end.getTime() <= start.getTime()) {
+    return { error: "Les séjours se réservent du samedi au samedi." };
   }
 
   const fullName = `${request.first_name} ${request.last_name}`;
+  const nights = eachNightInclusive(overrides.startDate, overrides.endDate);
 
-  const rows = eachNightInclusive(request.start_date, request.end_date).map((date) => ({
+  // Si l'admin a changé les dates, vérifie qu'elles ne chevauchent pas une
+  // autre réservation déjà bloquée avant d'écraser quoi que ce soit.
+  const { data: conflictRows, error: conflictError } = await supabase
+    .from("availability")
+    .select("date")
+    .in("date", nights);
+
+  if (conflictError) {
+    return { error: "Impossible de vérifier la disponibilité, réessayez." };
+  }
+  if (conflictRows.length > 0) {
+    return { error: "Ces dates chevauchent une autre réservation déjà bloquée." };
+  }
+
+  const rows = nights.map((date) => ({
     date,
     status: "booked" as const,
     note: `Réservé par ${fullName}`,
@@ -49,20 +91,22 @@ export async function confirmBookingRequest(
       "Erreur lors du blocage des dates confirmées :",
       availabilityError.message
     );
-    return;
+    return { error: "Erreur lors du blocage des dates." };
   }
 
-  // Les adultes/enfants/ménage revus par l'admin dans la fenêtre de
-  // confirmation remplacent ceux soumis par le client — ce sont eux qui
-  // font foi pour la taxe de séjour et l'email de confirmation.
   const { error: requestError } = await supabase
     .from("booking_requests")
     .update({
       status: "confirmed",
       processed_by: adminLabel,
+      start_date: overrides.startDate,
+      end_date: overrides.endDate,
       adults: overrides.adults,
       children: overrides.children,
       cleaning_requested: overrides.cleaningRequested,
+      stay_price_override: overrides.stayPriceOverride,
+      cleaning_fee_override: overrides.cleaningFeeOverride,
+      tourist_tax_override: overrides.touristTaxOverride,
     })
     .eq("id", id);
 
@@ -74,13 +118,20 @@ export async function confirmBookingRequest(
   }
 
   await sendConfirmationEmail(supabase, {
-    ...request,
+    first_name: request.first_name,
+    email: request.email,
+    start_date: overrides.startDate,
+    end_date: overrides.endDate,
     adults: overrides.adults,
     cleaning_requested: overrides.cleaningRequested,
+    stay_price_override: overrides.stayPriceOverride,
+    cleaning_fee_override: overrides.cleaningFeeOverride,
+    tourist_tax_override: overrides.touristTaxOverride,
   });
 
   revalidatePath("/admin");
   revalidatePath("/");
+  return { error: null };
 }
 
 async function sendConfirmationEmail(
@@ -92,6 +143,9 @@ async function sendConfirmationEmail(
     end_date: string;
     adults: number;
     cleaning_requested: boolean;
+    stay_price_override: number | null;
+    cleaning_fee_override: number | null;
+    tourist_tax_override: number | null;
   }
 ) {
   const [{ data: pricingRules }, settings, weekAssignments] = await Promise.all([
@@ -102,30 +156,56 @@ async function sendConfirmationEmail(
 
   const start = parseISODate(request.start_date);
   const end = parseISODate(request.end_date);
+  const nights = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const weeks = nights / 7;
+  const cleaningFeeSetting = Number(settings.cleaning_fee ?? 0) || 0;
+  const touristTaxRate = Number(settings.tourist_tax_per_person_per_night ?? 0) || 0;
 
-  let pricing = null;
+  // Le tarif calculé (nuits × prix de la semaine assignée) sert de base
+  // pour le ménage/la taxe quand ils ne sont pas remplacés individuellement
+  // — mais un tarif du séjour remplacé par l'admin ne dépend d'aucune
+  // règle de tarification : l'email part quand même si calculateGrandTotal
+  // échoue (aucun tarif configuré pour ces dates), tant qu'au moins le
+  // prix du séjour est connu (calculé ou remplacé).
+  let computed: ReturnType<typeof calculateGrandTotal> | null = null;
   try {
-    const grandTotal = calculateGrandTotal(start, end, pricingRules ?? [], weekAssignments, {
+    computed = calculateGrandTotal(start, end, pricingRules ?? [], weekAssignments, {
       adults: request.adults,
       cleaningRequested: request.cleaning_requested,
-      cleaningFee: Number(settings.cleaning_fee ?? 0) || 0,
-      touristTaxPerPersonPerNight: Number(settings.tourist_tax_per_person_per_night ?? 0) || 0,
+      cleaningFee: cleaningFeeSetting,
+      touristTaxPerPersonPerNight: touristTaxRate,
     });
-    pricing = {
-      nights: grandTotal.breakdown.nights,
-      pricePerNight: grandTotal.breakdown.pricePerNight,
-      cleaningFee: grandTotal.cleaningFee,
-      touristTax: grandTotal.touristTax,
-      grandTotal: grandTotal.grandTotal,
-    };
   } catch (err) {
-    // Aucun tarif applicable configuré pour ces dates : l'email part quand
-    // même, juste sans le récapitulatif de prix (voir bookingConfirmedEmail).
     console.error(
-      "Prix non calculé pour l'email de confirmation :",
+      "Tarif calculé indisponible pour l'email de confirmation :",
       err instanceof Error ? err.message : err
     );
   }
+
+  const stayAmount = request.stay_price_override ?? computed?.breakdown.total ?? null;
+  const stayLabel =
+    request.stay_price_override != null
+      ? "Prix du séjour (tarif convenu)"
+      : computed
+        ? `${eur(computed.breakdown.pricePerNight * 7)} / semaine × ${weeks} semaine${weeks > 1 ? "s" : ""}`
+        : "Prix du séjour";
+  const cleaningFee =
+    request.cleaning_fee_override ??
+    computed?.cleaningFee ??
+    (request.cleaning_requested ? cleaningFeeSetting : 0);
+  const touristTax =
+    request.tourist_tax_override ?? computed?.touristTax ?? nights * request.adults * touristTaxRate;
+
+  const pricing =
+    stayAmount != null
+      ? {
+          stayLabel,
+          stayAmount,
+          cleaningFee,
+          touristTax,
+          grandTotal: stayAmount + cleaningFee + touristTax,
+        }
+      : null;
 
   const { subject, html } = bookingConfirmedEmail({
     firstName: request.first_name,

@@ -73,8 +73,11 @@ export function bookingRequestReceivedEmail(params: {
 }
 
 interface PricingSummary {
-  nights: number;
-  pricePerNight: number;
+  // Déjà formaté par l'appelant (ex. "195 € / semaine × 1 semaine", ou
+  // "Tarif convenu" si l'admin a remplacé le prix calculé) — cet e-mail
+  // n'a pas besoin de connaître le détail nuits/tarif pour l'afficher.
+  stayLabel: string;
+  stayAmount: number;
   cleaningFee: number;
   touristTax: number;
   grandTotal: number;
@@ -124,10 +127,7 @@ export function bookingConfirmedEmail(params: {
       ${
         pricing
           ? `<table style="width:100%;border-collapse:collapse;margin-top:16px;border-top:1px solid rgba(237,231,223,0.1);padding-top:8px;">
-              ${lineRow(
-                `${eur(pricing.pricePerNight * 7)} / semaine × ${pricing.nights / 7} semaine${pricing.nights / 7 > 1 ? "s" : ""}`,
-                pricing.pricePerNight * pricing.nights
-              )}
+              ${lineRow(pricing.stayLabel, pricing.stayAmount)}
               ${pricing.cleaningFee > 0 ? lineRow("Ménage", pricing.cleaningFee) : ""}
               ${pricing.touristTax > 0 ? lineRow("Taxe de séjour", pricing.touristTax) : ""}
               <tr>

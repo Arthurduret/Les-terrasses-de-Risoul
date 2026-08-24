@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { confirmBookingRequest } from "@/app/admin/(protected)/actions/bookingRequests";
+import {
+  confirmBookingRequest,
+  type ConfirmBookingOverrides,
+} from "@/app/admin/(protected)/actions/bookingRequests";
 import { Button } from "@/components/ui/Button";
-import { formatShortDate, parseISODate } from "@/components/calendar/utils";
+import { formatISO, isSaturday, parseISODate } from "@/components/calendar/utils";
 import { calculateGrandTotal, type WeekAssignments } from "@/lib/pricing";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -62,6 +65,43 @@ function Counter({
   );
 }
 
+// Ligne de prix avec remplacement manuel optionnel : champ vide = valeur
+// calculée (affichée en aperçu) conservée, une valeur saisie la remplace.
+function OverrideRow({
+  label,
+  caption,
+  computedValue,
+  overrideValue,
+  onOverrideChange,
+}: {
+  label: string;
+  caption?: string;
+  computedValue: number | null;
+  overrideValue: string;
+  onOverrideChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm text-mist-500">{label}</span>
+        <div className="flex items-center gap-1.5">
+          <input
+            type="number"
+            inputMode="decimal"
+            step="0.01"
+            value={overrideValue}
+            onChange={(e) => onOverrideChange(e.target.value)}
+            placeholder={computedValue != null ? String(Math.round(computedValue)) : "—"}
+            className="w-24 border border-foreground/15 bg-background px-2 py-1 text-right text-sm text-foreground placeholder:text-mist-700 focus:border-wood-500 focus:outline-none"
+          />
+          <span className="text-sm text-mist-500">€</span>
+        </div>
+      </div>
+      {caption && <p className="mt-0.5 text-xs text-mist-700">{caption}</p>}
+    </div>
+  );
+}
+
 interface ConfirmBookingModalProps {
   request: BookingRequest | null;
   pricingRules: PricingRule[];
@@ -70,11 +110,12 @@ interface ConfirmBookingModalProps {
   onClose: () => void;
 }
 
-// Avant de confirmer une demande, l'admin revoit et peut corriger le
-// nombre d'adultes/enfants et le ménage — le prix, la taxe de séjour et le
-// total affichés dans cette fenêtre sont exactement ceux qui partiront
-// dans l'email de confirmation au client (même calculateGrandTotal,
-// aucune valeur recalculée séparément).
+// Avant de confirmer une demande, l'admin revoit et peut corriger les
+// dates, adultes/enfants/ménage et — individuellement — le prix du
+// séjour, le ménage et la taxe de séjour (ex. tarif négocié). Tout ce qui
+// est affiché ici est exactement ce qui part dans l'email de confirmation
+// (voir sendConfirmationEmail, même logique de repli sur les valeurs
+// calculées quand un champ n'est pas remplacé).
 export function ConfirmBookingModal({
   request,
   pricingRules,
@@ -83,18 +124,32 @@ export function ConfirmBookingModal({
   onClose,
 }: ConfirmBookingModalProps) {
   const [mounted, setMounted] = useState(false);
+  const [startDateInput, setStartDateInput] = useState("");
+  const [endDateInput, setEndDateInput] = useState("");
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [cleaningRequested, setCleaningRequested] = useState(true);
+  const [stayOverride, setStayOverride] = useState("");
+  const [cleaningOverride, setCleaningOverride] = useState("");
+  const [taxOverride, setTaxOverride] = useState("");
   const [pending, setPending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!request) return;
+    setStartDateInput(request.start_date);
+    setEndDateInput(request.end_date);
     setAdults(request.adults);
     setChildren(request.children);
     setCleaningRequested(request.cleaning_requested);
+    setStayOverride(request.stay_price_override != null ? String(request.stay_price_override) : "");
+    setCleaningOverride(
+      request.cleaning_fee_override != null ? String(request.cleaning_fee_override) : ""
+    );
+    setTaxOverride(request.tourist_tax_override != null ? String(request.tourist_tax_override) : "");
+    setSubmitError(null);
   }, [request]);
 
   useEffect(() => {
@@ -114,28 +169,67 @@ export function ConfirmBookingModal({
 
   if (!request || !mounted) return null;
 
-  const start = parseISODate(request.start_date);
-  const end = parseISODate(request.end_date);
-  const cleaningFee = Number(settings.cleaning_fee ?? 0) || 0;
+  const start = parseISODate(startDateInput);
+  const end = parseISODate(endDateInput);
+  const datesValid = isSaturday(start) && isSaturday(end) && end.getTime() > start.getTime();
+  const nights = datesValid ? Math.round((end.getTime() - start.getTime()) / 86400000) : 0;
+  const weeks = nights / 7;
+
+  const cleaningFeeSetting = Number(settings.cleaning_fee ?? 0) || 0;
   const touristTaxRate = Number(settings.tourist_tax_per_person_per_night ?? 0) || 0;
 
   let grandTotal: ReturnType<typeof calculateGrandTotal> | null = null;
-  let priceError: string | null = null;
-  try {
-    grandTotal = calculateGrandTotal(start, end, pricingRules, weekAssignments, {
-      adults,
-      cleaningRequested,
-      cleaningFee,
-      touristTaxPerPersonPerNight: touristTaxRate,
-    });
-  } catch (err) {
-    priceError = err instanceof Error ? err.message : "Tarif indisponible pour ces dates.";
+  let dateError: string | null = null;
+  if (!datesValid) {
+    dateError = "Les séjours se réservent du samedi au samedi.";
+  } else {
+    try {
+      grandTotal = calculateGrandTotal(start, end, pricingRules, weekAssignments, {
+        adults,
+        cleaningRequested,
+        cleaningFee: cleaningFeeSetting,
+        touristTaxPerPersonPerNight: touristTaxRate,
+      });
+    } catch {
+      // Pas de tarif assigné à cette semaine — pas bloquant si un tarif de
+      // séjour est fourni à la main ci-dessous.
+    }
   }
 
+  const stayOverrideNum = stayOverride.trim() !== "" ? Number(stayOverride) : null;
+  const cleaningOverrideNum = cleaningOverride.trim() !== "" ? Number(cleaningOverride) : null;
+  const taxOverrideNum = taxOverride.trim() !== "" ? Number(taxOverride) : null;
+
+  const effectiveStay = stayOverrideNum ?? grandTotal?.breakdown.total ?? null;
+  const effectiveCleaning =
+    cleaningOverrideNum ?? grandTotal?.cleaningFee ?? (cleaningRequested ? cleaningFeeSetting : 0);
+  const effectiveTax = taxOverrideNum ?? grandTotal?.touristTax ?? nights * adults * touristTaxRate;
+  const effectiveTotal = effectiveStay != null ? effectiveStay + effectiveCleaning + effectiveTax : null;
+
+  const canConfirm = datesValid && effectiveStay != null && !pending;
+
   async function handleConfirm() {
+    if (!canConfirm) return;
     setPending(true);
-    await confirmBookingRequest(request!.id, { adults, children, cleaningRequested });
+    setSubmitError(null);
+
+    const overrides: ConfirmBookingOverrides = {
+      startDate: formatISO(start),
+      endDate: formatISO(end),
+      adults,
+      children,
+      cleaningRequested,
+      stayPriceOverride: stayOverrideNum,
+      cleaningFeeOverride: cleaningOverrideNum,
+      touristTaxOverride: taxOverrideNum,
+    };
+
+    const result = await confirmBookingRequest(request!.id, overrides);
     setPending(false);
+    if (result.error) {
+      setSubmitError(result.error);
+      return;
+    }
     onClose();
   }
 
@@ -150,12 +244,38 @@ export function ConfirmBookingModal({
       >
         <p className="font-display text-2xl text-foreground">Confirmer la réservation</p>
         <p className="mt-2 text-sm text-mist-500">
-          {request.first_name} {request.last_name} — Du{" "}
-          <span className="font-semibold text-foreground">{formatShortDate(start)}</span> au{" "}
-          <span className="font-semibold text-foreground">{formatShortDate(end)}</span>
+          {request.first_name} {request.last_name}
         </p>
 
-        <div className="mt-6 space-y-3 border-t border-foreground/10 pt-5">
+        <div className="mt-6 grid grid-cols-1 gap-4 border-t border-foreground/10 pt-5 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1.5 block text-sm text-mist-400">Arrivée</span>
+            <input
+              type="date"
+              value={startDateInput}
+              onChange={(e) => setStartDateInput(e.target.value)}
+              className="w-full border border-foreground/15 bg-background px-3 py-2 text-foreground focus:border-wood-500 focus:outline-none"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm text-mist-400">Départ</span>
+            <input
+              type="date"
+              value={endDateInput}
+              onChange={(e) => setEndDateInput(e.target.value)}
+              className="w-full border border-foreground/15 bg-background px-3 py-2 text-foreground focus:border-wood-500 focus:outline-none"
+            />
+          </label>
+        </div>
+        {dateError ? (
+          <p className="mt-2 text-xs text-red-400">{dateError}</p>
+        ) : (
+          <p className="mt-2 text-xs text-mist-700">
+            {nights} nuit{nights > 1 ? "s" : ""}
+          </p>
+        )}
+
+        <div className="mt-5 space-y-3 border-t border-foreground/10 pt-5">
           <Counter
             label="Adultes"
             value={adults}
@@ -183,53 +303,58 @@ export function ConfirmBookingModal({
             onChange={(e) => setCleaningRequested(e.target.checked)}
             className="h-4 w-4 accent-wood-500"
           />
-          Ménage de fin de séjour{cleaningFee > 0 ? ` (${eur(cleaningFee)})` : ""}
+          Ménage de fin de séjour
         </label>
 
-        {priceError ? (
-          <p className="mt-5 border-t border-foreground/10 pt-5 text-sm text-mist-500">
-            {priceError}
+        <div className="mt-5 space-y-4 border-t border-foreground/10 pt-5">
+          <p className="text-xs tracking-[0.14em] text-mist-600 uppercase">
+            Prix — laisser vide pour garder le calcul automatique
           </p>
-        ) : (
-          grandTotal && (
-            <div className="mt-5 space-y-2 border-t border-foreground/10 pt-5 text-sm text-mist-500">
-              <div className="flex justify-between gap-3">
-                <span>
-                  {eur(grandTotal.breakdown.pricePerNight * 7)} / semaine ×{" "}
-                  {grandTotal.breakdown.nights / 7} semaine
-                  {grandTotal.breakdown.nights / 7 > 1 ? "s" : ""}
-                </span>
-                <span className="text-foreground">{eur(grandTotal.breakdown.total)}</span>
-              </div>
-              {grandTotal.cleaningFee > 0 && (
-                <div className="flex justify-between gap-3">
-                  <span>Ménage</span>
-                  <span className="text-foreground">{eur(grandTotal.cleaningFee)}</span>
-                </div>
-              )}
-              {grandTotal.touristTax > 0 && (
-                <div className="flex justify-between gap-3">
-                  <span>Taxe de séjour</span>
-                  <span className="text-foreground">{eur(grandTotal.touristTax)}</span>
-                </div>
-              )}
-              <div className="flex items-baseline justify-between border-t border-foreground/10 pt-3">
-                <span className="text-xs tracking-[0.16em] text-mist-600 uppercase">Total</span>
-                <span className="font-display text-2xl text-foreground">
-                  {eur(grandTotal.grandTotal)}
-                </span>
-              </div>
-            </div>
-          )
-        )}
+          <OverrideRow
+            label="Prix du séjour"
+            caption={
+              datesValid
+                ? grandTotal
+                  ? `${eur(grandTotal.breakdown.pricePerNight * 7)} / semaine × ${weeks} semaine${weeks > 1 ? "s" : ""}`
+                  : "Aucun tarif assigné à cette semaine — saisir un montant."
+                : undefined
+            }
+            computedValue={grandTotal?.breakdown.total ?? null}
+            overrideValue={stayOverride}
+            onOverrideChange={setStayOverride}
+          />
+          {cleaningRequested && (
+            <OverrideRow
+              label="Ménage"
+              computedValue={grandTotal?.cleaningFee ?? cleaningFeeSetting}
+              overrideValue={cleaningOverride}
+              onOverrideChange={setCleaningOverride}
+            />
+          )}
+          <OverrideRow
+            label="Taxe de séjour"
+            computedValue={grandTotal?.touristTax ?? nights * adults * touristTaxRate}
+            overrideValue={taxOverride}
+            onOverrideChange={setTaxOverride}
+          />
+        </div>
+
+        <div className="mt-5 flex items-baseline justify-between border-t border-foreground/10 pt-5">
+          <span className="text-xs tracking-[0.16em] text-mist-600 uppercase">Total</span>
+          <span className="font-display text-2xl text-foreground">
+            {effectiveTotal != null ? eur(effectiveTotal) : "—"}
+          </span>
+        </div>
 
         <p className="mt-5 text-xs text-mist-700">
           Ces valeurs seront enregistrées sur la demande et utilisées dans l&apos;email de
           confirmation envoyé à {request.email}.
         </p>
 
+        {submitError && <p className="mt-3 text-sm text-red-400">{submitError}</p>}
+
         <div className="mt-6 flex flex-wrap gap-3">
-          <Button type="button" variant="primary" disabled={pending} onClick={handleConfirm}>
+          <Button type="button" variant="primary" disabled={!canConfirm} onClick={handleConfirm}>
             {pending ? "Confirmation…" : "Confirmer la réservation"}
           </Button>
           <Button type="button" variant="secondary" disabled={pending} onClick={onClose}>
