@@ -194,12 +194,12 @@ export function ReservationExact({
           <h2 className="ltr-h2">72 m² de bois et de lumière</h2>
           <PhotoGallery />
           <div className="ltr-facts">
-            <span>3 chambres</span>
-            <span>Jusqu&apos;à 12 voyageurs</span>
-            <span>2 salles d&apos;eau</span>
-            <span>Cheminée</span>
-            <span>Terrasse 18 m² plein sud</span>
-            <span>Casier à skis chauffé</span>
+            <span>2 chambres</span>
+            <span>Coin montagne</span>
+            <span>Dortoir</span>
+            <span>2 salles de bain</span>
+            <span>Terrasse 8 m² plein ouest</span>
+            <span>Casier à ski</span>
           </div>
         </div>
 

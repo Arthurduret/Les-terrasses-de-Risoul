@@ -67,8 +67,7 @@ export default async function HomePage() {
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-relaxed text-mist-300 text-pretty">
               Un appartement chaleureux au pied des pistes, à louer à la
-              semaine ou au week-end. Bois clair, grande terrasse, vue sur les
-              montagnes.
+              semaine. Bois clair, grande terrasse, vue sur les montagnes.
             </p>
             <HeroBadges />
             <div className="mt-8 flex flex-wrap gap-3.5">

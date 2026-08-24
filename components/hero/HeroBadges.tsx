@@ -1,7 +1,7 @@
 // Repères pratiques — remplacer les libellés par les vraies infos.
 const BADGES: string[] = [
-  "[Distance] des pistes",
-  "Parking inclus",
+  "250 m des pistes",
+  "Parking gratuit",
   "Wifi gratuit",
 ];
 
