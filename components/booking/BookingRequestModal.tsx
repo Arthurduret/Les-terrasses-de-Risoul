@@ -197,7 +197,7 @@ export function BookingRequestModal({
       onClick={onClose}
     >
       <div
-        className="max-h-[88vh] w-full max-w-lg overflow-y-auto border border-foreground/15 bg-anthracite-800 p-5 sm:p-8"
+        className="modal-scroll max-h-[88vh] w-full max-w-lg overflow-y-auto border border-foreground/15 bg-anthracite-800 p-5 sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         {status === "sent" ? (
