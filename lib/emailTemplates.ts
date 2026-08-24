@@ -4,6 +4,18 @@
 // (Intl), pas de logique de prix dupliquée : le détail vient toujours de
 // calculateGrandTotal (lib/pricing.ts), jamais recalculé ici.
 
+// Le prénom vient du formulaire public et est interpolé tel quel dans le
+// HTML de l'email — échappé pour ne pas laisser un client injecter du
+// balisage (ex. un lien) dans l'email qu'il reçoit ou que l'admin reçoit.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function formatDateFr(iso: string): string {
   const [year, month, day] = iso.split("-").map(Number);
   return new Intl.DateTimeFormat("fr-FR", {
@@ -36,7 +48,7 @@ export function bookingRequestReceivedEmail(params: {
   return {
     subject: "Votre demande de réservation — Les Terrasses de Risoul",
     html: wrapper(`
-      <p style="margin:0 0 16px;font-size:20px;">Bonjour ${firstName},</p>
+      <p style="margin:0 0 16px;font-size:20px;">Bonjour ${escapeHtml(firstName)},</p>
       <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#c8c1b7;">
         Nous avons bien reçu votre demande de réservation du
         <strong style="color:#ede7df;">${formatDateFr(startDate)}</strong>
@@ -87,7 +99,7 @@ export function bookingConfirmedEmail(params: {
   return {
     subject: "Votre réservation est confirmée — Les Terrasses de Risoul",
     html: wrapper(`
-      <p style="margin:0 0 16px;font-size:20px;">Bonjour ${firstName},</p>
+      <p style="margin:0 0 16px;font-size:20px;">Bonjour ${escapeHtml(firstName)},</p>
       <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#c8c1b7;">
         Votre séjour du <strong style="color:#ede7df;">${formatDateFr(startDate)}</strong>
         au <strong style="color:#ede7df;">${formatDateFr(endDate)}</strong> est confirmé.

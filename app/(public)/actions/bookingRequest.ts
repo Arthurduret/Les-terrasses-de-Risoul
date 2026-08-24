@@ -4,10 +4,16 @@ import { revalidatePath } from "next/cache";
 import { eachNightInclusive, isSaturday, parseISODate } from "@/components/calendar/utils";
 import { sendEmail } from "@/lib/email";
 import { bookingRequestReceivedEmail } from "@/lib/emailTemplates";
+import { getClientIp, isRateLimited } from "@/lib/rateLimit";
 import { createClient } from "@/lib/supabase/server";
 import { isValidEmail, isValidPhone } from "@/lib/validation";
 
 const MAX_OCCUPANTS = 12;
+// Un visiteur légitime ne soumet pas plus de quelques demandes en 10
+// minutes — au-delà, on coupe court plutôt que de laisser un script
+// spammer le formulaire (et les emails envoyés à chaque demande).
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
 export interface BookingRequestInput {
   startDate: string;
@@ -31,6 +37,11 @@ export interface BookingRequestInput {
 export async function submitBookingRequest(
   input: BookingRequestInput
 ): Promise<{ error: string | null }> {
+  const ip = await getClientIp();
+  if (isRateLimited(`booking:${ip}`, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS)) {
+    return { error: "Trop de demandes envoyées récemment — réessayez dans quelques minutes." };
+  }
+
   const start = parseISODate(input.startDate);
   const end = parseISODate(input.endDate);
 
