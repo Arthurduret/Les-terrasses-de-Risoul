@@ -39,18 +39,21 @@ export default function MentionsLegalesPage() {
           <section>
             <h2 className="font-display text-xl text-foreground">Hébergement</h2>
             <p className="mt-2">
-              Vercel Inc.
-              <br />
-              340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis
-              <br />
+              Le site est hébergé par l&apos;éditeur lui-même, à l&apos;adresse
+              mentionnée ci-dessus.
+            </p>
+            <p className="mt-2">
+              La diffusion est assurée via le réseau de{" "}
               <a
-                href="https://vercel.com"
+                href="https://www.cloudflare.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wood-500 underline underline-offset-2 hover:text-wood-300"
               >
-                vercel.com
+                Cloudflare, Inc.
               </a>
+              <br />
+              101 Townsend St, San Francisco, CA 94107, États-Unis
             </p>
           </section>
 
