@@ -44,6 +44,49 @@ personne qui gère le projet actuellement**, pas par un canal de partage de
 fichiers classique (ce sont des clés d'accès à la base de données et à
 l'envoi d'email).
 
+### ⚠️ Un second fichier `.env` est indispensable avec Docker Compose
+
+En plus de `.env.local`, il faut créer un fichier **`.env`** à la racine,
+contenant les deux variables publiques :
+
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+La raison est subtile. Dans `docker-compose.yml`, les deux arguments de
+build s'écrivent `${NEXT_PUBLIC_SUPABASE_URL}` : ce sont des substitutions
+de variables, et Docker Compose ne les cherche **que** dans l'environnement
+du shell ou dans un fichier nommé `.env`. La clé `env_file: .env.local` ne
+sert qu'à peupler l'environnement du conteneur au *lancement*, jamais à la
+substitution au moment du *build*.
+
+Sans ce fichier, la construction réussit sans le moindre avertissement,
+mais les deux arguments valent chaîne vide. Le site public continue de
+fonctionner — il est rendu côté serveur et lit les variables à l'exécution
+— tandis que **la console admin est silencieusement cassée** :
+`app/admin/login`, `app/admin/reset-password` et `SignOutButton` utilisent
+le client Supabase *navigateur*, dont les valeurs sont figées dans le
+bundle au moment de la compilation.
+
+Pour vérifier après un déploiement, l'URL Supabase doit apparaître dans le
+bundle JavaScript de la page de connexion :
+
+```bash
+curl -s http://localhost:3000/admin/login | grep -o 'chunks/app/admin/login/[^"]*js'
+```
+
+Récupérez le chemin affiché, puis :
+
+```bash
+curl -s http://localhost:3000/_next/static/CHEMIN_AFFICHE | grep -c 'supabase.co'
+```
+
+Un résultat supérieur à zéro signifie que les arguments de build ont bien
+été pris en compte. Zéro signifie que le fichier `.env` manquait.
+
+Les deux fichiers sont couverts par `.gitignore` (`.env*`).
+
 ## Build et lancement
 
 Avec Docker Compose (le plus simple) :
