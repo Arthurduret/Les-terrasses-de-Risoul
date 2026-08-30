@@ -18,6 +18,7 @@ import { getBlockedDates } from "@/lib/availability";
 import { getSettings } from "@/lib/settings";
 import { getWeekAssignments } from "@/lib/pricingWeeks";
 import { createClient } from "@/lib/supabase/server";
+import { WeeklyProgramme } from "@/components/activities/WeeklyProgramme";
 import { LocationMap } from "@/components/contact/LocationMap";
 import { ADRESSE, COORDONNEES, SITE_URL } from "@/lib/site";
 
@@ -183,6 +184,7 @@ export default async function HomePage() {
         </div>
 
         <ChairliftCarousel />
+        <WeeklyProgramme />
       </section>
 
       <SkiTraceDivider />
