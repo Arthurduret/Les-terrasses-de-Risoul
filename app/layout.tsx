@@ -33,6 +33,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE_URL,
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Les Terrasses de Risoul",
+    description:
+      "Appartement au ski à Risoul 1850 — location à la semaine, à 250 m des pistes.",
+  },
   openGraph: {
     type: "website",
     locale: "fr_FR",
