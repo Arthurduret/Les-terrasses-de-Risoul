@@ -18,6 +18,7 @@ import { getBlockedDates } from "@/lib/availability";
 import { getSettings } from "@/lib/settings";
 import { getWeekAssignments } from "@/lib/pricingWeeks";
 import { createClient } from "@/lib/supabase/server";
+import { SITE_URL } from "@/lib/site";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -28,21 +29,56 @@ export default async function HomePage() {
     getWeekAssignments(supabase),
   ]);
 
+  // Données structurées : ce que Google lit pour construire un résultat
+  // enrichi (photo, équipements, capacité). Chaque champ doit rester exact —
+  // une information démentie par la page dessert le référencement.
+  const equipements = [
+    "Wifi gratuit",
+    "Parking gratuit",
+    "Casier à ski",
+    "Terrasse",
+    "Lave-vaisselle",
+    "Lave-linge",
+    "Télévision",
+    "Cuisine équipée",
+  ];
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LodgingBusiness",
     name: "Les Terrasses de Risoul",
     description:
       "Appartement au ski à Risoul 1850 — location à la semaine, à 250 m des pistes.",
-    url: "https://lesterrassesderisoul.fr",
+    url: SITE_URL,
     email: settings.contact_email || "reservation@lesterrassesderisoul.fr",
+    // Sans image, pas de résultat enrichi : c'est le champ qui pèse le plus.
+    image: [
+      `${SITE_URL}/images/apartment/vue-drone-station-1.jpeg`,
+      `${SITE_URL}/images/apartment/salon-1.jpeg`,
+      `${SITE_URL}/images/apartment/cuisine-1.jpeg`,
+      `${SITE_URL}/images/apartment/terrasse-1.jpeg`,
+    ],
     address: {
       "@type": "PostalAddress",
+      streetAddress: "ZAC Les Chalps",
       addressLocality: "Risoul",
       postalCode: "05600",
       addressRegion: "Hautes-Alpes",
       addressCountry: "FR",
     },
+    floorSize: { "@type": "QuantitativeValue", value: 63, unitCode: "MTK" },
+    numberOfRooms: 2,
+    petsAllowed: false,
+    // MAX_OCCUPANTS dans l'action de réservation vaut 12 : même source de
+    // vérité, sinon Google annonce une capacité que le formulaire refuse.
+    occupancy: { "@type": "QuantitativeValue", maxValue: 12, unitText: "personnes" },
+    amenityFeature: equipements.map((nom) => ({
+      "@type": "LocationFeatureSpecification",
+      name: nom,
+      value: true,
+    })),
+    ...(settings.checkin_time ? { checkinTime: settings.checkin_time } : {}),
+    ...(settings.checkout_time ? { checkoutTime: settings.checkout_time } : {}),
   };
 
   return (
@@ -64,14 +100,14 @@ export default async function HomePage() {
         <div className="relative z-[8] flex h-full flex-col justify-between px-5 py-8 sm:px-10 sm:py-10">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <Logo />
-            <div className="flex gap-7 text-xs tracking-[0.16em] text-mist-400 uppercase">
-              <Link href="#disponibilites" className="hover:text-foreground">
+            <div className="-my-2 flex gap-7 text-xs tracking-[0.16em] text-mist-400 uppercase">
+              <Link href="#disponibilites" className="py-2 hover:text-foreground">
                 Réserver
               </Link>
-              <Link href="#activites" className="hover:text-foreground">
+              <Link href="#activites" className="py-2 hover:text-foreground">
                 La station
               </Link>
-              <Link href="#contact" className="hover:text-foreground">
+              <Link href="#contact" className="py-2 hover:text-foreground">
                 Contact
               </Link>
             </div>

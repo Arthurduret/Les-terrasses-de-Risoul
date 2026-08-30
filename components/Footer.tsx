@@ -19,13 +19,13 @@ export function Footer() {
             aria-label="Navigation du site"
             className="flex flex-wrap gap-x-8 gap-y-2 text-sm text-mist-400"
           >
-            <Link href="/#disponibilites" className="hover:text-foreground">
+            <Link href="/#disponibilites" className="py-1 hover:text-foreground">
               Réserver
             </Link>
-            <Link href="/#activites" className="hover:text-foreground">
+            <Link href="/#activites" className="py-1 hover:text-foreground">
               La station
             </Link>
-            <Link href="/#contact" className="hover:text-foreground">
+            <Link href="/#contact" className="py-1 hover:text-foreground">
               Contact
             </Link>
           </nav>
@@ -34,13 +34,13 @@ export function Footer() {
             aria-label="Informations légales"
             className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-mist-700"
           >
-            <Link href="/mentions-legales" className="hover:text-mist-400">
+            <Link href="/mentions-legales" className="py-1 hover:text-mist-400">
               Mentions légales
             </Link>
-            <Link href="/confidentialite" className="hover:text-mist-400">
+            <Link href="/confidentialite" className="py-1 hover:text-mist-400">
               Confidentialité
             </Link>
-            <Link href="/cgv" className="hover:text-mist-400">
+            <Link href="/cgv" className="py-1 hover:text-mist-400">
               Conditions générales de vente
             </Link>
           </nav>
