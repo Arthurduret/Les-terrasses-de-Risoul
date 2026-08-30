@@ -51,6 +51,9 @@ export function HeroSlideshow() {
               key={photo.filename}
               src={photoSrc(photo.filename)}
               alt={photo.alt}
+              // La première diapo est le plus grand élément visible au
+              // chargement : elle doit partir en priorité, les suivantes non.
+              priority={i === 0}
               className={`hero-slide h-full w-full object-cover ${i === index ? "is-active" : ""}`}
             />
           ))}

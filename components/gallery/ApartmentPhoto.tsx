@@ -1,19 +1,46 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface ApartmentPhotoProps {
   src: string;
   alt: string;
   className?: string;
+  /** Photo visible d'emblée (hero) : chargée sans attendre, en priorité haute. */
+  priority?: boolean;
 }
 
-// Affiche la vraie photo si le fichier existe dans /public/images/apartment/,
-// sinon retombe automatiquement sur un placeholder (bloc + icône). Dès qu'un
-// fichier du bon nom est déposé, le placeholder disparaît de lui-même.
-export function ApartmentPhoto({ src, alt, className = "" }: ApartmentPhotoProps) {
+// Variante WebP du même fichier, ~43 % plus légère que le JPEG.
+// Renvoie la source inchangée si ce n'est pas un JPEG.
+function webpVariant(src: string) {
+  return src.replace(/\.jpe?g$/i, ".webp");
+}
+
+// Affiche la photo en WebP quand elle existe, sinon retombe sur le JPEG
+// d'origine, sinon sur un placeholder (bloc + icône). Cette cascade garde
+// la convention du projet : déposer un fichier .jpeg dans
+// /public/images/apartment/ suffit — la variante WebP est un bonus, jamais
+// une condition.
+export function ApartmentPhoto({
+  src,
+  alt,
+  className = "",
+  priority = false,
+}: ApartmentPhotoProps) {
+  const [current, setCurrent] = useState(() => webpVariant(src));
   const [failed, setFailed] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    setCurrent(webpVariant(src));
+    setFailed(false);
+  }, [src]);
+
+  const handleError = useCallback(() => {
+    // WebP absent : on tente le JPEG. JPEG absent aussi : placeholder.
+    setCurrent((c) => (c !== src ? src : c));
+    setFailed((f) => f || current === src);
+  }, [current, src]);
 
   useEffect(() => {
     // Le navigateur commence à charger l'image dès le HTML rendu par le
@@ -21,9 +48,9 @@ export function ApartmentPhoto({ src, alt, className = "" }: ApartmentPhotoProps
     // très rapide (localhost), l'échec peut déjà être acté à l'hydratation.
     const img = imgRef.current;
     if (img?.complete && img.naturalWidth === 0) {
-      setFailed(true);
+      handleError();
     }
-  }, []);
+  }, [current, handleError]);
 
   if (failed) {
     return (
@@ -40,9 +67,12 @@ export function ApartmentPhoto({ src, alt, className = "" }: ApartmentPhotoProps
   return (
     <img
       ref={imgRef}
-      src={src}
+      src={current}
       alt={alt}
-      onError={() => setFailed(true)}
+      onError={handleError}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      fetchPriority={priority ? "high" : undefined}
       className={className}
     />
   );
