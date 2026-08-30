@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Barlow } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-display",
@@ -13,8 +14,6 @@ const barlow = Barlow({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
 });
-
-const SITE_URL = "https://lesterrassesderisoul.fr";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
