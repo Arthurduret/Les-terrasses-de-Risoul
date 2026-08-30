@@ -25,7 +25,11 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# Les sources peuvent venir d'un partage reseau (ACL Synology) : on
+# normalise les droits de lecture, sinon l'utilisateur nextjs ne peut
+# pas parcourir public/images et le serveur plante au demarrage.
+RUN chmod -R a+rX ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
