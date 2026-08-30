@@ -18,7 +18,8 @@ import { getBlockedDates } from "@/lib/availability";
 import { getSettings } from "@/lib/settings";
 import { getWeekAssignments } from "@/lib/pricingWeeks";
 import { createClient } from "@/lib/supabase/server";
-import { SITE_URL } from "@/lib/site";
+import { LocationMap } from "@/components/contact/LocationMap";
+import { ADRESSE, COORDONNEES, SITE_URL } from "@/lib/site";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -60,12 +61,18 @@ export default async function HomePage() {
     ],
     address: {
       "@type": "PostalAddress",
-      streetAddress: "ZAC Les Chalps",
-      addressLocality: "Risoul",
-      postalCode: "05600",
-      addressRegion: "Hautes-Alpes",
-      addressCountry: "FR",
+      streetAddress: ADRESSE.rue,
+      addressLocality: ADRESSE.ville,
+      postalCode: ADRESSE.codePostal,
+      addressRegion: ADRESSE.region,
+      addressCountry: ADRESSE.pays,
     },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: COORDONNEES.latitude,
+      longitude: COORDONNEES.longitude,
+    },
+    hasMap: `https://www.openstreetmap.org/?mlat=${COORDONNEES.latitude}&mlon=${COORDONNEES.longitude}`,
     floorSize: { "@type": "QuantitativeValue", value: 63, unitCode: "MTK" },
     numberOfRooms: 2,
     petsAllowed: false,
@@ -204,6 +211,9 @@ export default async function HomePage() {
               </a>
               .
             </p>
+          </Reveal>
+          <Reveal delayMs={80}>
+            <LocationMap />
           </Reveal>
         </Container>
       </section>

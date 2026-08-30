@@ -22,6 +22,9 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
   `connect-src ${connectSrc}`,
+  // La carte de situation est un iframe OpenStreetMap ; sans cette
+  // directive, default-src 'self' la bloquerait.
+  "frame-src https://www.openstreetmap.org",
   "frame-ancestors 'none'",
   "form-action 'self'",
   "base-uri 'self'",
