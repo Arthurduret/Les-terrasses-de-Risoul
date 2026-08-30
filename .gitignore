@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# variantes d'images generees au build par scripts/generate-image-variants.mjs
+# (source unique : les .jpeg — inutile de versionner ce qui se regenere)
+/public/images/apartment/*.webp

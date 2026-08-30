@@ -14,6 +14,21 @@ const slides = getHeroPhotos();
 export function HeroSlideshow() {
   const [index, setIndex] = useState(0);
   const [parallax, setParallax] = useState(0);
+  // Les diapos sont empilées et toutes dans le viewport : `loading="lazy"`
+  // ne les differerait pas. On les monte donc au fur et à mesure, sinon le
+  // premier écran télécharge les quatre photos pour n'en montrer qu'une.
+  const [montees, setMontees] = useState(1);
+
+  useEffect(() => {
+    // La suivante arrive une fois la page affichée : la première transition
+    // n'a lieu qu'à 6,5 s, elle a largement le temps.
+    const id = setTimeout(() => setMontees((n) => Math.max(n, 2)), 1200);
+    return () => clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    setMontees((n) => Math.max(n, Math.min(index + 2, slides.length)));
+  }, [index]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -46,7 +61,7 @@ export function HeroSlideshow() {
           className="absolute -top-16 -bottom-16 left-0 right-0"
           style={{ transform: `translate3d(0, ${parallax}px, 0)`, willChange: "transform" }}
         >
-          {slides.map((photo, i) => (
+          {slides.slice(0, montees).map((photo, i) => (
             <ApartmentPhoto
               key={photo.filename}
               src={photoSrc(photo.filename)}
@@ -60,17 +75,27 @@ export function HeroSlideshow() {
         </div>
       </div>
 
-      <div className="absolute bottom-10 right-5 z-10 flex gap-2 sm:right-8">
+      <div className="absolute bottom-10 right-3 z-10 flex sm:right-6">
         {slides.map((photo, i) => (
           <button
             key={photo.filename}
             type="button"
-            onClick={() => setIndex(i)}
+            onClick={() => {
+              setMontees(slides.length);
+              setIndex(i);
+            }}
             aria-label={`Aller à la photo ${i + 1}`}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              i === index ? "w-6 bg-wood-500" : "w-2 bg-foreground/35 hover:bg-foreground/55"
-            }`}
-          />
+            // La pastille visible fait 8 px : trop petite pour un doigt.
+            // Le padding porte la zone tactile a 24 px sans changer le
+            // rendu, seuil minimal des criteres d'accessibilite.
+            className="flex items-center justify-center p-2"
+          >
+            <span
+              className={`block h-2 rounded-full transition-all duration-300 ${
+                i === index ? "w-6 bg-wood-500" : "w-2 bg-foreground/35 hover:bg-foreground/55"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </>

@@ -8,36 +8,58 @@ interface ApartmentPhotoProps {
   className?: string;
   /** Photo visible d'emblée (hero) : chargée sans attendre, en priorité haute. */
   priority?: boolean;
+  /**
+   * Largeur d'affichage prévue, pour que le navigateur choisisse la bonne
+   * variante. Défaut : pleine largeur de l'écran.
+   */
+  sizes?: string;
 }
 
-// Variante WebP du même fichier, ~43 % plus légère que le JPEG.
-// Renvoie la source inchangée si ce n'est pas un JPEG.
-function webpVariant(src: string) {
-  return src.replace(/\.jpe?g$/i, ".webp");
+// Largeurs produites par scripts/generate-image-variants.mjs.
+const LARGEURS = [640, 1024];
+
+function sansExtension(src: string) {
+  return src.replace(/\.jpe?g$/i, "");
+}
+
+// Un mobile de 375 px n'a aucune raison de télécharger une image de 1600 px.
+// srcSet laisse le navigateur choisir : la variante 640 sur téléphone, 1024
+// sur tablette, la pleine résolution sur grand écran.
+function srcSetWebp(src: string) {
+  const base = sansExtension(src);
+  if (base === src) return undefined; // pas un JPEG : pas de variantes
+  return [
+    ...LARGEURS.map((l) => `${base}-w${l}.webp ${l}w`),
+    `${base}.webp 1600w`,
+  ].join(", ");
 }
 
 // Affiche la photo en WebP quand elle existe, sinon retombe sur le JPEG
 // d'origine, sinon sur un placeholder (bloc + icône). Cette cascade garde
 // la convention du projet : déposer un fichier .jpeg dans
-// /public/images/apartment/ suffit — la variante WebP est un bonus, jamais
-// une condition.
+// /public/images/apartment/ suffit — les variantes WebP sont un bonus
+// généré au build, jamais une condition d'affichage.
 export function ApartmentPhoto({
   src,
   alt,
   className = "",
   priority = false,
+  sizes = "100vw",
 }: ApartmentPhotoProps) {
-  const [current, setCurrent] = useState(() => webpVariant(src));
+  const [current, setCurrent] = useState(() => `${sansExtension(src)}.webp`);
   const [failed, setFailed] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  const enWebp = current !== src;
+
   useEffect(() => {
-    setCurrent(webpVariant(src));
+    setCurrent(`${sansExtension(src)}.webp`);
     setFailed(false);
   }, [src]);
 
   const handleError = useCallback(() => {
-    // WebP absent : on tente le JPEG. JPEG absent aussi : placeholder.
+    // Variante WebP absente : on retombe sur le JPEG, sans srcSet.
+    // JPEG absent aussi : placeholder.
     setCurrent((c) => (c !== src ? src : c));
     setFailed((f) => f || current === src);
   }, [current, src]);
@@ -68,6 +90,8 @@ export function ApartmentPhoto({
     <img
       ref={imgRef}
       src={current}
+      srcSet={enWebp ? srcSetWebp(src) : undefined}
+      sizes={enWebp ? sizes : undefined}
       alt={alt}
       onError={handleError}
       loading={priority ? "eager" : "lazy"}
