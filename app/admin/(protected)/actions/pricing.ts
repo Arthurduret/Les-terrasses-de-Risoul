@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/adminAuth";
 
 function parseNumber(value: FormDataEntryValue | null): number | null {
   if (value === null || value === "") return null;
@@ -29,7 +29,7 @@ export async function createPricingRule(formData: FormData) {
   const minWeeks = parseNumber(formData.get("min_weeks"));
   const color = String(formData.get("color") ?? "").trim() || null;
 
-  const supabase = await createClient();
+  const supabase = await adminClient();
   await supabase.from("pricing_rules").insert({
     label,
     color,
@@ -50,7 +50,7 @@ export async function updatePricingRule(id: string, formData: FormData) {
   const minWeeks = parseNumber(formData.get("min_weeks"));
   const color = String(formData.get("color") ?? "").trim() || null;
 
-  const supabase = await createClient();
+  const supabase = await adminClient();
   await supabase
     .from("pricing_rules")
     .update({
@@ -67,7 +67,7 @@ export async function updatePricingRule(id: string, formData: FormData) {
 }
 
 export async function deletePricingRule(id: string) {
-  const supabase = await createClient();
+  const supabase = await adminClient();
   await supabase.from("pricing_rules").delete().eq("id", id);
 
   revalidatePath("/admin");
@@ -77,7 +77,7 @@ export async function deletePricingRule(id: string) {
 export async function assignPricingWeeks(weekStarts: string[], ruleId: string | null) {
   if (weekStarts.length === 0) return { error: null };
 
-  const supabase = await createClient();
+  const supabase = await adminClient();
 
   if (ruleId === null) {
     const { error } = await supabase

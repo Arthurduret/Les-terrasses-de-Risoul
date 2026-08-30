@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { currentAdminLabel } from "@/lib/adminLabel";
-import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/adminAuth";
 
 type AvailabilityStatus = "blocked" | "booked";
 
@@ -11,7 +11,7 @@ export async function setAvailability(
   status: AvailabilityStatus,
   note: string | null
 ) {
-  const supabase = await createClient();
+  const supabase = await adminClient();
   const updated_by = await currentAdminLabel(supabase);
   const { error } = await supabase
     .from("availability")
@@ -27,7 +27,7 @@ export async function setAvailability(
 }
 
 export async function unblockDate(date: string) {
-  const supabase = await createClient();
+  const supabase = await adminClient();
   const { error } = await supabase.from("availability").delete().eq("date", date);
 
   if (error) {
@@ -46,7 +46,7 @@ export async function setAvailabilityRange(
 ) {
   if (dates.length === 0) return { error: null };
 
-  const supabase = await createClient();
+  const supabase = await adminClient();
   const updated_by = await currentAdminLabel(supabase);
   const rows = dates.map((date) => ({ date, status, note, updated_by }));
   const { error } = await supabase.from("availability").upsert(rows, { onConflict: "date" });
@@ -63,7 +63,7 @@ export async function setAvailabilityRange(
 export async function unblockDates(dates: string[]) {
   if (dates.length === 0) return { error: null };
 
-  const supabase = await createClient();
+  const supabase = await adminClient();
   const { error } = await supabase.from("availability").delete().in("date", dates);
 
   if (error) {

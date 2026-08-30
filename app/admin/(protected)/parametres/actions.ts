@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/adminAuth";
 
 const SETTINGS_KEYS = [
   "cleaning_fee",
@@ -14,7 +14,7 @@ const SETTINGS_KEYS = [
 ] as const;
 
 export async function updateAdminName(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = await adminClient();
   const full_name = String(formData.get("full_name") ?? "").trim();
 
   await supabase.auth.updateUser({ data: { full_name } });
@@ -24,7 +24,7 @@ export async function updateAdminName(formData: FormData) {
 }
 
 export async function updateSettings(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = await adminClient();
 
   const entries = SETTINGS_KEYS.map((key) => ({
     key,

@@ -8,7 +8,8 @@ import { bookingConfirmedEmail } from "@/lib/emailTemplates";
 import { calculateGrandTotal } from "@/lib/pricing";
 import { getSettings } from "@/lib/settings";
 import { getWeekAssignments } from "@/lib/pricingWeeks";
-import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/adminAuth";
+import type { createClient } from "@/lib/supabase/server";
 
 function eur(amount: number): string {
   return `${Math.round(amount).toLocaleString("fr-FR")} €`;
@@ -35,7 +36,7 @@ export async function confirmBookingRequest(
   id: string,
   overrides: ConfirmBookingOverrides
 ): Promise<{ error: string | null }> {
-  const supabase = await createClient();
+  const supabase = await adminClient();
   const adminLabel = await currentAdminLabel(supabase);
 
   const { data: request, error: requestFetchError } = await supabase
@@ -224,7 +225,7 @@ async function sendConfirmationEmail(
 }
 
 export async function declineBookingRequest(id: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await adminClient();
   const adminLabel = await currentAdminLabel(supabase);
 
   const { error } = await supabase
@@ -244,7 +245,7 @@ export async function declineBookingRequest(id: string): Promise<void> {
 // était confirmée, libère aussi les dates qu'elle avait bloquées, pour ne
 // pas laisser de dates "réservées" fantômes sans demande associée.
 export async function deleteBookingRequest(id: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await adminClient();
 
   const { data: request, error: fetchError } = await supabase
     .from("booking_requests")

@@ -10,6 +10,27 @@ import { createClient } from "@/lib/supabase/server";
 import { isValidEmail, isValidPhone } from "@/lib/validation";
 
 const MAX_OCCUPANTS = 12;
+
+// Longueurs maximales acceptées. Les colonnes Postgres sont en `text`, donc
+// sans borne : une requête directe à l'action (sans passer par le
+// formulaire) pourrait y stocker des mégaoctets par champ.
+const MAX_LENGTHS = {
+  firstName: 80,
+  lastName: 80,
+  address: 200,
+  postalCode: 16,
+  city: 100,
+  email: 254,
+  phone: 32,
+  message: 2000,
+} as const;
+
+// Un séjour se réserve du samedi au samedi. Sans borne supérieure, deux
+// samedis distants de plusieurs années passent la validation et produisent
+// des dizaines de milliers de dates dans la requête de disponibilité —
+// de quoi saturer le serveur et la base d'un seul envoi.
+const MAX_NIGHTS = 98; // 14 semaines
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 // Un visiteur légitime ne soumet pas plus de quelques demandes en 10
 // minutes — au-delà, on coupe court plutôt que de laisser un script
 // spammer le formulaire (et les emails envoyés à chaque demande).
@@ -48,6 +69,24 @@ export async function submitBookingRequest(
 
   if (!isSaturday(start) || !isSaturday(end) || end.getTime() <= start.getTime()) {
     return { error: "Les séjours se réservent du samedi au samedi." };
+  }
+
+  const nights = Math.round((end.getTime() - start.getTime()) / MS_PER_DAY);
+  if (nights > MAX_NIGHTS) {
+    return { error: `Les séjours sont limités à ${MAX_NIGHTS / 7} semaines consécutives.` };
+  }
+
+  // `< 1` laisserait passer NaN (toute comparaison avec NaN est fausse) et
+  // les décimales : on exige des entiers avant toute autre vérification.
+  if (!Number.isInteger(input.adults) || !Number.isInteger(input.children)) {
+    return { error: "Nombre de voyageurs invalide." };
+  }
+
+  for (const [champ, max] of Object.entries(MAX_LENGTHS)) {
+    const valeur = input[champ as keyof typeof MAX_LENGTHS];
+    if (typeof valeur === "string" && valeur.trim().length > max) {
+      return { error: "Un des champs dépasse la longueur autorisée." };
+    }
   }
 
   if (
